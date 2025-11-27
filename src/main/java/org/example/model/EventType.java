@@ -1,8 +1,6 @@
 package org.example.model;
 
-import org.example.framework.IEventType;
-
-public enum EventType implements IEventType {
+public enum EventType implements org.example.framework.EventType {
     ARRIVAL,
     EXIT,
     DEPART,
