@@ -11,6 +11,18 @@ public class HomeController {
     }
 
     public void testFunc() {
-
+        System.out.println("Test");
     }
+
+    public void pauseSimulation(){
+        System.out.println("Pause");
+    }
+
+    public void resumeSimulation(){
+        System.out.println("Resume");
+    }
+    public void addTime(String time){
+        System.out.println("add time to simulation " + time);
+    }
+
 }

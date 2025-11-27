@@ -1,10 +1,10 @@
 package org.example.framework;
 
 public class Event implements Comparable<Event> {
-    private IEventType type;
+    private EventType type;
     private double time;
 
-    public Event(IEventType type, double time) {
+    public Event(EventType type, double time) {
         this.type = type;
         this.time = time;
     }
@@ -13,7 +13,7 @@ public class Event implements Comparable<Event> {
         return time;
     }
 
-    public IEventType getType() {
+    public EventType getType() {
         return type;
     }
 
