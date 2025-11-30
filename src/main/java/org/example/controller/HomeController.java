@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.view.HomeView;
 
+// Hooks UI to simulation
 public class HomeController {
     private HomeView view;
 
@@ -14,15 +15,21 @@ public class HomeController {
         System.out.println("Test");
     }
 
-    public void pauseSimulation(){
+    public void pauseSimulation() {
         System.out.println("Pause");
     }
 
-    public void resumeSimulation(){
+    public void resumeSimulation() {
         System.out.println("Resume");
     }
-    public void addTime(String time){
+
+    public void addTime(String time) {
         System.out.println("add time to simulation " + time);
     }
 
+
+    public void addCars(String num) {
+        int amount = Integer.parseInt(num);
+        System.out.println("Add cars:" + amount);
+    }
 }
