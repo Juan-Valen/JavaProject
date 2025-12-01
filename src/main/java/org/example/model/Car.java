@@ -73,4 +73,10 @@ public class Car {
         return endTime - startTime;
     }
 
+
+    @Override
+    public String toString() {
+        return "Car{id=" + id + "}"; // or include arrival time, etc.
+    }
+
 }

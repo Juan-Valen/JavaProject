@@ -2,7 +2,7 @@ package org.example.framework;
 
 public class Clock {
     private static Clock instance;
-    private double clock;
+    private long clock;
 
     private Clock() { }
 
@@ -12,11 +12,11 @@ public class Clock {
         return instance;
     }
 
-    public void setClock(double clock) {
+    public void setClock(long clock) {
         this.clock = clock;
     }
 
-    public double getClock() {
+    public long getClock() {
         return clock;
     }
 }
