@@ -9,7 +9,7 @@ public class TrafficLight {
 
     public TrafficLight(String location) {
         this.location = location;
-        this.state = State.RED; // default
+        this.state = State.RED;
     }
 
 

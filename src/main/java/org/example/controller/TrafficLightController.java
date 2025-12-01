@@ -50,9 +50,6 @@ public class TrafficLightController {
         }
     }
 
-
-
-
     private void setNSGreen() {
         north.setState(TrafficLight.State.GREEN);
         south.setState(TrafficLight.State.GREEN);

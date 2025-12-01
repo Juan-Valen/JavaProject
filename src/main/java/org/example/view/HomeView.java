@@ -14,8 +14,11 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import org.example.controller.SimulationController;
 import org.example.controller.TrafficLightController;
+import org.example.framework.IntersectionEngine;
 import org.example.model.Queue;
 import org.example.model.TrafficLight;
+
+import java.util.Map;
 
 public class HomeView extends Application {
 
@@ -106,8 +109,9 @@ public class HomeView extends Application {
         updateLights(trafficLightController);
 
         // Start simulation
+        IntersectionEngine intersectionEngine = new IntersectionEngine();
         SimulationController simulationController =
-                new SimulationController(trafficLightController, queue, this);
+                new SimulationController(intersectionEngine, this);
         simulationController.startSimulation();
 
         // Controller
@@ -144,6 +148,12 @@ public class HomeView extends Application {
         southLight.setFill(toColor(controller.getSouth().getState()));
         eastLight.setFill(toColor(controller.getEast().getState()));
         westLight.setFill(toColor(controller.getWest().getState()));
+    }
+
+
+    public void updateQueues(Map<String, Integer> queues) {
+        System.out.println("Cars in queue: " + queues);
+        // Later can update UI labels or draw cars on the road
     }
 
 

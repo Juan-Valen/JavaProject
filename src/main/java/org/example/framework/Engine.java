@@ -16,12 +16,16 @@ public abstract class Engine {
         this.simulationTime = simulationTime;
     }
 
+    public double getSimulationTime() {
+        return simulationTime;
+    }
+
     public void run() {
         initialize();
 
         while (simulate()) {
             System.out.printf("\n%sA-phase:%s time is %.2f\n", RED, WHITE, currentTime());
-            Clock.getInstance().setClock(currentTime());
+            Clock.getInstance().setClock((long)currentTime());
 
             System.out.printf("%sB-phase:%s ", RED, WHITE);
             runBEvents();
