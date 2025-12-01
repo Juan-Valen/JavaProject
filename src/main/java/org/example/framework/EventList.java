@@ -33,6 +33,7 @@ public class EventList {
     public Event poll() {
         if (eventList.isEmpty()) return null;
         Event e = eventList.poll();
+        System.out.println(" ");
         System.out.printf("Polling from the event list %s at %d ms%n", e.getType(), e.getTime());        return e;
     }
 

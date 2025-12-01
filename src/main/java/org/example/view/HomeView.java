@@ -27,12 +27,12 @@ public class HomeView extends Application {
     private Circle southLight;
     private Circle eastLight;
     private Circle westLight;
+    private Pane intersectionPane = new Pane();
 
 
     @Override
     public void start(Stage window) {
         // Intersection visualization
-        Pane intersectionPane = new Pane();
         intersectionPane.setPrefSize(400, 400);
 
         // Draw roads
@@ -155,6 +155,11 @@ public class HomeView extends Application {
         System.out.println("Cars in queue: " + queues);
         // Later can update UI labels or draw cars on the road
     }
+
+    public void addCarNode(Circle carShape) {
+        intersectionPane.getChildren().add(carShape);
+    }
+
 
 
 

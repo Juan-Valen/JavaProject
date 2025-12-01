@@ -1,12 +1,32 @@
 package org.example.framework;
 
+import javafx.application.Platform;
+import org.example.controller.TrafficLightController;
 import org.example.model.*;
+
+import java.util.function.Consumer;
 
 
 // MAIN SIMULATION
 public class IntersectionEngine extends Engine{
     private Intersection intersection1;
     private EventList el;
+
+    private TrafficLightController trafficLightController;
+
+    public IntersectionEngine() {
+        this.trafficLightController = new TrafficLightController();
+    }
+
+
+    public TrafficLightController getTrafficLightController() {
+        if (trafficLightController == null) {
+            throw new IllegalStateException("TrafficLightController has not been initialized. " +
+                    "Make sure to create it in the IntersectionEngine constructor or via an init method.");
+        }
+        return trafficLightController;
+    }
+
 
     @Override
     protected void initialize() {
@@ -50,20 +70,42 @@ public class IntersectionEngine extends Engine{
 
     @Override
     protected void results() {
+        System.out.println(" ");
         System.out.println("Simulation finished.");
     }
 
-    public void runWithCallback(Runnable callback) {
+
+
+    public void runWithCallback(Consumer<Event> callback) {
         initialize();
+
+        long startRealTime = System.currentTimeMillis();
+        double simulationClock = 0;
+
         while (!el.isEmpty() && Clock.getInstance().getClock() < getSimulationTime()) {
             Event e = el.poll();
             Clock.getInstance().setClock(e.getTime());
             runEvent(e);
             tryCEvents();
-            callback.run(); // Update UI after each event
+
+            // ✅ Update traffic lights based on elapsed time
+            double elapsedSeconds = e.getTime() / 1000.0;
+            trafficLightController.update(elapsedSeconds);
+
+            // ✅ Pass the event to the UI
+            if (callback != null) {
+                Platform.runLater(() -> callback.accept(e));
+            }
+
+            try {
+                Thread.sleep(100); // Small delay for animation effect
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
         }
         results();
     }
+
 
     public Intersection getIntersection1(){
         return intersection1;

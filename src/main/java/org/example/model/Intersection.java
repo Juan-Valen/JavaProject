@@ -34,12 +34,16 @@ public class Intersection {
         } else {
             queueB.addLast(a.car);
         }
-        System.out.printf("[%.2f] %s ARRIVE %s from %s\n",
-                (double) ClockTime(), name, a.car, a.fromA ? "A" : "B");
+        System.out.println(" ");
+        System.out.println("---------- HandleArrival: ------");
+        System.out.printf("%s ARRIVE %s from %s at %.0f ms\n",
+                 name, a.car, a.fromA ? "A" : "B", (double) ClockTime());
     }
 
     public void completeService(Departure d, long completionTime, EventList eventList) {
-        System.out.printf("[%.2f] %s COMPLETE %s from %s\n", (double) completionTime, name, d.car, d.fromA ? "A" : "B");
+        System.out.println(" ");
+        System.out.println("---------- CompleteService: ------");
+        System.out.printf("%s COMPLETE %s from %s at %.0f ms\n",  name, d.car, d.fromA ? "A" : "B",(double) completionTime);
         // route to next intersection (instant arrival at same simulated time)
         if (next != null) {
             eventList.add(new Event(completionTime, Event.EventType.ARRIVAL, new Arrival(d.car, true), "Arrival from previous intersection into next intersection")); // assume next intersection treats all as direction A
@@ -69,7 +73,7 @@ public class Intersection {
 
         long service = minService + rnd.nextInt((int)(maxService - minService));
         long completion = now + service;
-        System.out.printf("[%.2f] %s START %s (service=%.2f)\n", (double) now, name, car, (double) service);
+        System.out.printf("%s START %s (service=%.0f) at %.0f ms\n " ,  name, car,(double) now, (double) service);
         eventList.add(new Event(completion, Event.EventType.DEPARTURE, new Departure(car, greenA), "Departure after service at intersection"));
     }
 
@@ -90,6 +94,12 @@ public class Intersection {
         return trafficLightController;
     }
 
+    public List<Car> getQueueA(){
+        return queueA;
+    }
+    public List<Car> getQueueB(){
+        return queueB;
+    }
 
 
 

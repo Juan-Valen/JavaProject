@@ -17,8 +17,8 @@ public class TrafficLightController {
     public void update(double seconds) {
         cycleTime += seconds;
 
-        double greenDuration = 4;   // GREEN for 5s
-        double yellowDuration = 2;  // YELLOW for 2s
+        double greenDuration = 4;
+        double yellowDuration = 2;
         double phaseDuration = greenDuration + yellowDuration; // 7s per phase
 
         if (cycleTime < greenDuration) {
