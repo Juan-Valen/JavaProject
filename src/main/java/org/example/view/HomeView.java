@@ -115,7 +115,7 @@ public class HomeView extends Application {
         simulationController.startSimulation();
 
         // Controller
-        HomeController controller = new HomeController(this);
+        HomeController controller = new HomeController(this, simulationController);
         pauseBtn.setOnAction(e -> controller.pauseSimulation());
         resumeBtn.setOnAction(e -> controller.resumeSimulation());
         addTimeBtn.setOnAction(e -> controller.addTime(timeInput.getText()));

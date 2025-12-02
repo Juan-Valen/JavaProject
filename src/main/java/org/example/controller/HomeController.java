@@ -5,10 +5,10 @@ import org.example.view.HomeView;
 // Hooks UI to simulation
 public class HomeController {
     private HomeView view;
-
-    public HomeController(HomeView view) {
+    private SimulationController simulationController;
+    public HomeController(HomeView view, SimulationController simulationController) {
         this.view = view;
-
+        this.simulationController = simulationController;
     }
 
     public void testFunc() {
@@ -16,15 +16,15 @@ public class HomeController {
     }
 
     public void pauseSimulation() {
-        System.out.println("Pause");
+        simulationController.getEngine().setPaused(true);
     }
-
     public void resumeSimulation() {
-        System.out.println("Resume");
+        simulationController.getEngine().setPaused(false);
     }
 
     public void addTime(String time) {
-        System.out.println("add time to simulation " + time);
+        double addedTime = Double.parseDouble(time);
+        simulationController.getEngine().setSimulationTime(addedTime);
     }
 
 

@@ -11,6 +11,11 @@ import java.util.function.Consumer;
 public class IntersectionEngine extends Engine{
     private Intersection intersection1;
     private EventList el;
+    private volatile boolean paused = false;
+
+    private long startTime;
+    private long pausedStart;
+    private long totalPausedDuration = 0;
 
     private TrafficLightController trafficLightController;
 
@@ -30,6 +35,7 @@ public class IntersectionEngine extends Engine{
 
     @Override
     protected void initialize() {
+        startTime = System.currentTimeMillis();
         el = eventList;
         // chain one intersection (can add more)
         Intersection intersection2 = new Intersection("Intersection-2", null, 50, 150, trafficLightController);
@@ -78,7 +84,7 @@ public class IntersectionEngine extends Engine{
     @Override
     protected void results() {
         System.out.println(" ");
-        System.out.println("Simulation finished.");
+        System.out.println("Simulation finished at " + Clock.getInstance().getClock());
     }
 
 
@@ -91,29 +97,41 @@ public class IntersectionEngine extends Engine{
             el.add(new Event(t, Event.EventType.TICK, null, "Simulation tick"));
         }
 
-        while (!el.isEmpty() && Clock.getInstance().getClock() < getSimulationTime()) {
-            Event e = el.poll();
-            Clock.getInstance().setClock(e.getTime());
-            runEvent(e);
-            tryCEvents();
 
-
-
-            if (e.getType() == Event.EventType.TICK) {
-                trafficLightController.update(0.1); // 100 ms = 0.1 sec
+        while (Clock.getInstance().getClock() < getSimulationTime()) {
+            if (paused) {
+                synchronized (this) {
+                    while (paused) {
+                        System.out.println("Simulation paused...");
+                        try {
+                            wait();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                }
             }
 
+            Event e = el.poll();
+            if (e != null) {
+                Clock.getInstance().setClock(e.getTime());
+                runEvent(e);
+                tryCEvents();
 
-            // ✅ Then try to start service
-            tryCEvents();
+                if (e.getType() == Event.EventType.TICK) {
+                    trafficLightController.update(0.1);
+                }
 
-            // ✅ Pass the event to the UI
-            if (callback != null) {
-                Platform.runLater(() -> callback.accept(e));
+                if (callback != null) {
+                    Platform.runLater(() -> callback.accept(e));
+                }
+            } else {
+                // No event? Advance clock manually
+                Clock.getInstance().setClock(Clock.getInstance().getClock() + 100);
             }
 
             try {
-                Thread.sleep(100); // Small delay for animation effect
+                Thread.sleep(100);
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }
@@ -122,7 +140,7 @@ public class IntersectionEngine extends Engine{
     }
 
 
-    public Intersection getIntersection1(){
+        public Intersection getIntersection1(){
         return intersection1;
     }
 
@@ -137,4 +155,19 @@ public class IntersectionEngine extends Engine{
 
 
 
+    public synchronized void setPaused(boolean paused) {
+        this.paused = paused;
+        if (paused) {
+            pausedStart = System.currentTimeMillis();
+        } else {
+            totalPausedDuration += System.currentTimeMillis() - pausedStart;
+            notifyAll();
+        }
+    }
+
+
+    public void setSimulationTime(double addedTime) {
+        super.setSimulationTime(this.getSimulationTime()+addedTime);
+        System.out.println("Remaining simulation time: "+ getRemainingSimulationTime());
+    }
 }
