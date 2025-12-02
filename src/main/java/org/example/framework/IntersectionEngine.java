@@ -32,8 +32,8 @@ public class IntersectionEngine extends Engine{
     protected void initialize() {
         el = eventList;
         // chain one intersection (can add more)
-        Intersection intersection2 = new Intersection("Intersection-2", null, 50, 150);
-        intersection1 = new Intersection("Intersection-1", intersection2, 20, 100);
+        Intersection intersection2 = new Intersection("Intersection-2", null, 50, 150, trafficLightController);
+        intersection1 = new Intersection("Intersection-1", intersection2, 20, 100, trafficLightController);
 
         // schedule arrivals on both directions
         for (int i = 0; i < 8; i++) {
@@ -43,7 +43,7 @@ public class IntersectionEngine extends Engine{
             el.add(new Event(tB, Event.EventType.ARRIVAL, new Arrival(new Car(i*2+1), false),"Arrival of Car at time: " + (i*2+1) + " to direction B"));
         }
 
-        setSimulationTime(1000);
+        setSimulationTime(10000);
     }
 
     @Override
@@ -58,6 +58,13 @@ public class IntersectionEngine extends Engine{
                 Departure d = (Departure) e.getPayload();
                 intersection1.completeService(d, now, el);
             }
+
+            case TICK -> {
+                // Advance traffic lights by 0.1 sec (100 ms)
+                trafficLightController.update(0.1);
+                tryCEvents();
+            }
+
         }
     }
 
@@ -79,8 +86,10 @@ public class IntersectionEngine extends Engine{
     public void runWithCallback(Consumer<Event> callback) {
         initialize();
 
-        long startRealTime = System.currentTimeMillis();
-        double simulationClock = 0;
+
+        for (long t = 0; t < getSimulationTime(); t += 100) {
+            el.add(new Event(t, Event.EventType.TICK, null, "Simulation tick"));
+        }
 
         while (!el.isEmpty() && Clock.getInstance().getClock() < getSimulationTime()) {
             Event e = el.poll();
@@ -88,9 +97,15 @@ public class IntersectionEngine extends Engine{
             runEvent(e);
             tryCEvents();
 
-            // ✅ Update traffic lights based on elapsed time
-            double elapsedSeconds = e.getTime() / 1000.0;
-            trafficLightController.update(elapsedSeconds);
+
+
+            if (e.getType() == Event.EventType.TICK) {
+                trafficLightController.update(0.1); // 100 ms = 0.1 sec
+            }
+
+
+            // ✅ Then try to start service
+            tryCEvents();
 
             // ✅ Pass the event to the UI
             if (callback != null) {

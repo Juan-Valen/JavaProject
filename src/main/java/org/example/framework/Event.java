@@ -6,7 +6,8 @@ public class Event implements Comparable<Event> {
         DEPARTURE,
         EXIT,
         TRAFFIC_TOGGLE,
-        CHECK_TRAFFIC
+        CHECK_TRAFFIC,
+        TICK
     }
 
     private EventType type;

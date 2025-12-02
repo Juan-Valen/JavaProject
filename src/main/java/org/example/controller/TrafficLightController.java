@@ -17,8 +17,8 @@ public class TrafficLightController {
     public void update(double seconds) {
         cycleTime += seconds;
 
-        double greenDuration = 4;
-        double yellowDuration = 2;
+        double greenDuration = 1;
+        double yellowDuration = 0.5;
         double phaseDuration = greenDuration + yellowDuration; // 7s per phase
 
         if (cycleTime < greenDuration) {
@@ -86,5 +86,20 @@ public class TrafficLightController {
     public TrafficLight.State getEastState()  { return east.getState();  }
     public TrafficLight.State getWestState()  { return west.getState();  }
 
+
+    public boolean isGreen(String direction) {
+        switch (direction.toUpperCase()) {
+            case "NORTH":
+                return getNorthState() == TrafficLight.State.GREEN;
+            case "SOUTH":
+                return getSouthState() == TrafficLight.State.GREEN;
+            case "EAST":
+                return getEastState() == TrafficLight.State.GREEN;
+            case "WEST":
+                return getWestState() == TrafficLight.State.GREEN;
+            default:
+                throw new IllegalArgumentException("Invalid direction: " + direction);
+        }
+    }
 
 }
