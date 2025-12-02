@@ -20,6 +20,11 @@ public abstract class Engine {
         return simulationTime;
     }
 
+    public long getRemainingSimulationTime() {
+        return (long)Math.max(0, getSimulationTime() - Clock.getInstance().getClock());
+    }
+
+
     public void run() {
         initialize();
 

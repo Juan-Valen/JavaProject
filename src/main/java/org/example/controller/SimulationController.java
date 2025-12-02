@@ -22,7 +22,7 @@ public class SimulationController {
     private IntersectionEngine engine;
     private HomeView view;
     private final Map<Car, Circle> carNodes = new HashMap<>();
-
+    private Thread simulationThread;
 
     // COORDINATES FOR CAR ANIMATION
     private static final double START_X_N = 300;
@@ -34,7 +34,6 @@ public class SimulationController {
     private static final double START_X_W = 0;
     private static final double START_Y_W = 380;
 
-
     private static final double END_X_N = 300;
     private static final double END_Y_N = 700;
     private static final double END_X_S = 380;
@@ -43,7 +42,6 @@ public class SimulationController {
     private static final double END_Y_E = 300;
     private static final double END_X_W = 700;
     private static final double END_Y_W = 380;
-
 
     private static final double STOP_X_N = 300;
     private static final double STOP_Y_N = 260;
@@ -55,23 +53,19 @@ public class SimulationController {
     private static final double STOP_Y_W = 380;
 
 
-
-
-    private final TrafficLightController trafficLightController;
-
-
     public SimulationController(IntersectionEngine engine, HomeView view) {
         this.engine = engine;
         this.view = view;
-        this.trafficLightController = engine.getTrafficLightController();
     }
 
+
     public void startSimulation() {
-        // Run the engine in a separate thread so UI stays responsive
-        new Thread(() -> {
+        simulationThread = new Thread(() -> {
             engine.runWithCallback(this::updateView);
-        }).start();
+        });
+        simulationThread.start();
     }
+
 
 
     private void updateView(Event event) {
@@ -133,6 +127,10 @@ public class SimulationController {
             move.setToY(endY - startY);
             move.play();
         }
+    }
+
+    public IntersectionEngine getEngine() {
+        return engine;
     }
 }
 
