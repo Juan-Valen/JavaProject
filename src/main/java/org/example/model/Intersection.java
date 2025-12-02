@@ -20,12 +20,12 @@ public class Intersection {
     private TrafficLightController trafficLightController;
 
 
-    public Intersection(String name, Intersection next, long minService, long maxService) {
+    public Intersection(String name, Intersection next, long minService, long maxService, TrafficLightController controller) {
         this.name = name;
         this.next = next;
         this.minService = minService;
         this.maxService = maxService;
-        this.trafficLightController = new TrafficLightController();
+        this.trafficLightController = controller;
     }
 
     public void handleArrival(Arrival a) {
@@ -54,28 +54,37 @@ public class Intersection {
     }
 
     // Called in C-phase for the current simulation time; if possible start one service and schedule DEPARTURE
+
+
+
     public void tryStartService(long now, EventList eventList) {
         if (busy) return;
 
-        LinkedList<Car> activeQueue = greenA ? queueA : queueB;
-        LinkedList<Car> otherQueue = greenA ? queueB : queueA;
+        // Check which directions are green
+        boolean nsGreen = trafficLightController.getNorthState() == TrafficLight.State.GREEN
+                || trafficLightController.getSouthState() == TrafficLight.State.GREEN;
+        boolean ewGreen = trafficLightController.getEastState() == TrafficLight.State.GREEN
+                || trafficLightController.getWestState() == TrafficLight.State.GREEN;
 
-        // If current green empty but other has vehicles, allow other to go instead (preemptive flip)
-        if (activeQueue.isEmpty() && !otherQueue.isEmpty()) {
-            greenA = !greenA;
-            activeQueue = greenA ? queueA : queueB;
+        LinkedList<Car> activeQueue = null;
+
+        if (nsGreen && !queueA.isEmpty()) {
+            activeQueue = queueA;
+        } else if (ewGreen && !queueB.isEmpty()) {
+            activeQueue = queueB;
         }
 
-        if (activeQueue.isEmpty()) return; // nothing to start
+        if (activeQueue == null) return;
 
         Car car = activeQueue.removeFirst();
         busy = true;
 
         long service = minService + rnd.nextInt((int)(maxService - minService));
         long completion = now + service;
-        System.out.printf("%s START %s (service=%.0f) at %.0f ms\n " ,  name, car,(double) now, (double) service);
-        eventList.add(new Event(completion, Event.EventType.DEPARTURE, new Departure(car, greenA), "Departure after service at intersection"));
+        eventList.add(new Event(completion, Event.EventType.DEPARTURE, new Departure(car, nsGreen), "Departure after service"));
     }
+
+
 
     private long ClockTime() {
         return org.example.framework.Clock.getInstance().getClock();
