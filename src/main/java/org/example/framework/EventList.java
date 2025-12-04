@@ -25,7 +25,7 @@ public class EventList {
 
     public Event remove() {
         if (eventList.isEmpty()) return null;
-        System.out.printf("Adding to the event list %s at %d ms%n",
+        System.out.printf("Removing from the event list %s at %d ms%n",
                 eventList.peek().getType(), eventList.peek().getTime() );
         return eventList.remove();
     }

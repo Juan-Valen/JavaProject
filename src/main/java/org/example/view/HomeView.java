@@ -160,8 +160,5 @@ public class HomeView extends Application {
         intersectionPane.getChildren().add(carShape);
     }
 
-
-
-
 }
 

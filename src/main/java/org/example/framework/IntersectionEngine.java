@@ -48,7 +48,6 @@ public class IntersectionEngine extends Engine{
             el.add(new Event(tA, Event.EventType.ARRIVAL, new Arrival(new Car(i*2), true),"Arrival of Car at time: " + (i*2) + " to direction A"));
             el.add(new Event(tB, Event.EventType.ARRIVAL, new Arrival(new Car(i*2+1), false),"Arrival of Car at time: " + (i*2+1) + " to direction B"));
         }
-
         setSimulationTime(10000);
     }
 
