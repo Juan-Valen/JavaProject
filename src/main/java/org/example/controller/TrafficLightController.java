@@ -7,6 +7,12 @@ import org.example.model.TrafficLight;
 import java.util.List;
 
 public class TrafficLightController {
+
+//    delay after green light changes to yellow
+    private static final int greenDelay = 2;
+//    delay after yellow light changes to red
+    private static final int yellowDelay = 5;
+
     private final TrafficLight north = new TrafficLight("NORTH");
     private final TrafficLight south = new TrafficLight("SOUTH");
     private final TrafficLight east = new TrafficLight("EAST");
@@ -47,6 +53,55 @@ public class TrafficLightController {
             west.setState(TrafficLight.State.YELLOW);
         } else {
             cycleTime = 0; // restart cycle
+        }
+    }
+
+    // Add specific intersection control later
+    // Checks current states and changes accordingly, returns integer used as the delay for next change. Integer defined at the top of the class.
+    public int changeLights() {
+
+        switch (north.getState()) {
+            case GREEN ->  {
+                north.setState(TrafficLight.State.YELLOW);
+                south.setState(TrafficLight.State.YELLOW);
+                east.setState(TrafficLight.State.RED);
+                west.setState(TrafficLight.State.RED);
+
+                return greenDelay;
+            }
+            case YELLOW -> {
+                north.setState(TrafficLight.State.RED);
+                south.setState(TrafficLight.State.RED);
+                east.setState(TrafficLight.State.GREEN);
+                west.setState(TrafficLight.State.GREEN);
+
+                return yellowDelay;
+            }
+            case RED -> {
+                switch (east.getState()) {
+                    case GREEN -> {
+                        north.setState(TrafficLight.State.RED);
+                        south.setState(TrafficLight.State.RED);
+                        east.setState(TrafficLight.State.YELLOW);
+                        west.setState(TrafficLight.State.YELLOW);
+
+                        return greenDelay;
+                    }
+                    case YELLOW -> {
+                        north.setState(TrafficLight.State.GREEN);
+                        south.setState(TrafficLight.State.GREEN);
+                        east.setState(TrafficLight.State.RED);
+                        west.setState(TrafficLight.State.RED);
+
+                        return yellowDelay;
+                    }
+                    case RED -> {
+                        // This case should not occur in a standard 4-way intersection
+                        // lmao yeah XD
+                    }
+                }
+            }
+
         }
     }
 

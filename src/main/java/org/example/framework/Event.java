@@ -5,6 +5,7 @@ public class Event implements Comparable<Event> {
         ARRIVAL,
         DEPARTURE,
         EXIT,
+        LIGHT_CHANGE,
         TRAFFIC_TOGGLE,
         CHECK_TRAFFIC,
         TICK

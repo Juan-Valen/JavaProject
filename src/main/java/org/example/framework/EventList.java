@@ -20,7 +20,8 @@ public class EventList {
 
 
     public void add(Event e) {
-        System.out.printf("Adding to the event list %s at %d ms%n", e.getType(), e.getTime());        eventList.add(e);
+        System.out.printf("Adding to the event list %s at %d ms%n", e.getType(), e.getTime());
+        eventList.add(e);
     }
 
     public Event remove() {

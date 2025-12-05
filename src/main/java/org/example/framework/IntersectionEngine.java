@@ -4,16 +4,19 @@ import javafx.application.Platform;
 import org.example.controller.TrafficLightController;
 import org.example.model.*;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 
 // MAIN SIMULATION
 public class IntersectionEngine extends Engine{
     private Intersection intersection1;
+
+    private List<Intersection> intersectionList = new java.util.ArrayList<>();
+
     private EventList el;
     private volatile boolean paused = false;
 
-    private long startTime;
     private long pausedStart;
     private long totalPausedDuration = 0;
 
@@ -35,18 +38,21 @@ public class IntersectionEngine extends Engine{
 
     @Override
     protected void initialize() {
-        startTime = System.currentTimeMillis();
         el = eventList;
         // chain one intersection (can add more)
         Intersection intersection2 = new Intersection("Intersection-2", null, 50, 150, trafficLightController);
         intersection1 = new Intersection("Intersection-1", intersection2, 20, 100, trafficLightController);
 
+        intersectionList.add(intersection1);
+        intersectionList.add(intersection2);
+
         // schedule arrivals on both directions
+        //TEMP: fixed arrivals for testing, make random continuous generation later.
         for (int i = 0; i < 8; i++) {
             long tA = i * 30; // arrivals to direction A
             long tB = i * 45 + 10; // arrivals to direction B
-            el.add(new Event(tA, Event.EventType.ARRIVAL, new Arrival(new Car(i*2), true),"Arrival of Car at time: " + (i*2) + " to direction A"));
-            el.add(new Event(tB, Event.EventType.ARRIVAL, new Arrival(new Car(i*2+1), false),"Arrival of Car at time: " + (i*2+1) + " to direction B"));
+            el.add(new Event(tA, Event.EventType.ARRIVAL, new Arrival(new Car(i*2), true, intersection1),"Arrival of Car at time: " + (i*2) + " to direction A"));
+            el.add(new Event(tB, Event.EventType.ARRIVAL, new Arrival(new Car(i*2+1), false, intersection1),"Arrival of Car at time: " + (i*2+1) + " to direction B"));
         }
         setSimulationTime(10000);
     }
@@ -57,11 +63,15 @@ public class IntersectionEngine extends Engine{
         switch (e.getType()) {
             case ARRIVAL -> {
                 Arrival a = (Arrival) e.getPayload();
-                intersection1.handleArrival(a);
+                a.getIntersection().handleArrival(a);
             }
             case DEPARTURE -> {
                 Departure d = (Departure) e.getPayload();
-                intersection1.completeService(d, now, el);
+                d.getIntersection().completeService(d, now, el);
+            }
+            case LIGHT_CHANGE -> {
+                TrafficLightChange tlc = (TrafficLightChange) e.getPayload();
+                tlc.getIntersection().ChangeTrafficLights(now, el);
             }
 
             case TICK -> {
@@ -77,7 +87,10 @@ public class IntersectionEngine extends Engine{
     protected void tryCEvents() {
         // called each C-phase at current clock: allow intersection to start at most one service
         long now = Clock.getInstance().getClock();
-        intersection1.tryStartService(now, eventList);
+        for (Intersection i : intersectionList) {
+            i.tryStartService(now, eventList);
+        }
+//        intersection1.tryStartService(now, eventList);
     }
 
     @Override
@@ -117,6 +130,7 @@ public class IntersectionEngine extends Engine{
                 runEvent(e);
                 tryCEvents();
 
+//                duplicate please delete later
                 if (e.getType() == Event.EventType.TICK) {
                     trafficLightController.update(0.1);
                 }
