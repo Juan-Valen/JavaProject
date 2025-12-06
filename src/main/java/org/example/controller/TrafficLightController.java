@@ -7,6 +7,12 @@ import org.example.model.TrafficLight;
 import java.util.List;
 
 public class TrafficLightController {
+
+//    delay after green light changes to yellow
+    private static final int greenDelay = 200;
+//    delay after yellow light changes to red
+    private static final int yellowDelay = 600;
+
     private final TrafficLight north = new TrafficLight("NORTH");
     private final TrafficLight south = new TrafficLight("SOUTH");
     private final TrafficLight east = new TrafficLight("EAST");
@@ -50,14 +56,60 @@ public class TrafficLightController {
         }
     }
 
-    private void setNSGreen() {
+    // Add specific intersection control later
+    // Checks current states and changes accordingly, returns integer used as the delay for next change. Integer defined at the top of the class.
+    public int changeLights() {
+
+        switch (north.getState()) {
+            case GREEN ->  {
+                north.setState(TrafficLight.State.YELLOW);
+                south.setState(TrafficLight.State.YELLOW);
+                east.setState(TrafficLight.State.RED);
+                west.setState(TrafficLight.State.RED);
+
+                return greenDelay;
+            }
+            case YELLOW -> {
+                north.setState(TrafficLight.State.RED);
+                south.setState(TrafficLight.State.RED);
+                east.setState(TrafficLight.State.GREEN);
+                west.setState(TrafficLight.State.GREEN);
+
+                return yellowDelay;
+            }
+            case RED -> {
+                switch (east.getState()) {
+                    case GREEN -> {
+                        north.setState(TrafficLight.State.RED);
+                        south.setState(TrafficLight.State.RED);
+                        east.setState(TrafficLight.State.YELLOW);
+                        west.setState(TrafficLight.State.YELLOW);
+
+                        return greenDelay;
+                    }
+                    case YELLOW -> {
+                        north.setState(TrafficLight.State.GREEN);
+                        south.setState(TrafficLight.State.GREEN);
+                        east.setState(TrafficLight.State.RED);
+                        west.setState(TrafficLight.State.RED);
+
+                        return yellowDelay;
+                    }
+                }
+            }
+
+        }
+        return 0; // should never reach here
+    }
+
+    public void setNSGreen() {
         north.setState(TrafficLight.State.GREEN);
         south.setState(TrafficLight.State.GREEN);
         east.setState(TrafficLight.State.RED);
         west.setState(TrafficLight.State.RED);
     }
 
-    private void setEWGreen() {
+    public void setEWGreen() {
         north.setState(TrafficLight.State.RED);
         south.setState(TrafficLight.State.RED);
         east.setState(TrafficLight.State.GREEN);

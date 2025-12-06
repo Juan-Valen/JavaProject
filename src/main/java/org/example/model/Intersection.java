@@ -36,26 +36,37 @@ public class Intersection {
         }
         System.out.println(" ");
         System.out.println("---------- HandleArrival: ------");
-        System.out.printf("%s ARRIVE %s from %s at %.0f ms\n",
+        System.out.printf("%s ARRIVE %s from %s at %.0f \n",
                  name, a.car, a.fromA ? "A" : "B", (double) ClockTime());
     }
 
-    public void completeService(Departure d, long completionTime, EventList eventList) {
+    public void completeService(Departure d, long now, EventList eventList) {
         System.out.println(" ");
         System.out.println("---------- CompleteService: ------");
-        System.out.printf("%s COMPLETE %s from %s at %.0f ms\n",  name, d.car, d.fromA ? "A" : "B",(double) completionTime);
+        System.out.printf("%s COMPLETE %s from %s at %.0f \n",  name, d.car, d.fromA ? "A" : "B",(double) now);
         // route to next intersection (instant arrival at same simulated time)
         if (next != null) {
-            eventList.add(new Event(completionTime, Event.EventType.ARRIVAL, new Arrival(d.car, true), "Arrival from previous intersection into next intersection")); // assume next intersection treats all as direction A
+            eventList.add(new Event(now, Event.EventType.ARRIVAL, new Arrival(d.car, true, next), "Arrival from previous intersection into next intersection")); // assume next intersection treats all as direction A
         }
         // mark service done and flip green (alternate queues)
         busy = false;
         greenA = !greenA;
     }
 
+    public void ChangeTrafficLights(long now, EventList eventList) {
+        System.out.println(" ");
+        System.out.println("---------- ChangeTrafficLights: ------");
+        System.out.printf("%s CHANGING TRAFFIC LIGHTS at %.0f \n", name, (double) ClockTime());
+        int timeToNext = trafficLightController.changeLights();
+        // schedule next light change
+        //changeLights returns 0 if light is somehow not red, green, or yellow
+        if (timeToNext != 0) {
+            eventList.add(new Event(now + timeToNext, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(this), "Traffic Light Change Event for: " + this.name) );
+        }
+    }
+
+
     // Called in C-phase for the current simulation time; if possible start one service and schedule DEPARTURE
-
-
 
     public void tryStartService(long now, EventList eventList) {
         if (busy) return;
@@ -81,7 +92,7 @@ public class Intersection {
 
         long service = minService + rnd.nextInt((int)(maxService - minService));
         long completion = now + service;
-        eventList.add(new Event(completion, Event.EventType.DEPARTURE, new Departure(car, nsGreen), "Departure after service"));
+        eventList.add(new Event(completion, Event.EventType.DEPARTURE, new Departure(car, nsGreen, this), "Departure after service"));
     }
 
 
@@ -110,7 +121,12 @@ public class Intersection {
         return queueB;
     }
 
+    public Intersection getNext() {
+        return next;
+    }
 
-
+    public String getName() {
+        return name;
+    }
 
 }
