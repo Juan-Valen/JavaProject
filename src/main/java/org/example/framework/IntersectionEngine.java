@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 
 // MAIN SIMULATION
 public class IntersectionEngine extends Engine{
-    private Intersection intersection1;
+    private TrafficLightIntersection intersection1;
 
     private List<Intersection> intersectionList = new java.util.ArrayList<>();
 
@@ -40,11 +40,13 @@ public class IntersectionEngine extends Engine{
     protected void initialize() {
         el = eventList;
         // chain one intersection (can add more)
-        Intersection intersection2 = new Intersection("Intersection-2", null, 50, 150, trafficLightController);
-        intersection1 = new Intersection("Intersection-1", intersection2, 20, 100, trafficLightController);
+        BareIntersection intersection3 = new BareIntersection("Intersection-3", null, 30, 120, trafficLightController);
+        TrafficLightIntersection intersection2 = new TrafficLightIntersection("Intersection-2", intersection3, 50, 150, trafficLightController);
+        intersection1 = new TrafficLightIntersection("Intersection-1", intersection2, 20, 100, trafficLightController);
 
         intersectionList.add(intersection1);
         intersectionList.add(intersection2);
+        intersectionList.add(intersection3);
 
         // schedule arrivals on both directions
         //TEMP: fixed arrivals for testing, make random continuous generation later.
@@ -56,7 +58,7 @@ public class IntersectionEngine extends Engine{
         }
 
         // schedule initial traffic light change
-        el.add(new Event(0, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection1), "Initial Traffic Light Change Event for: " + intersection1.getName()));
+        el.add(new Event(600, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection1), "Initial Traffic Light Change Event for: " + intersection1.getName()));
 
         //set initial traffic light states
         trafficLightController.setNSGreen();
@@ -81,12 +83,6 @@ public class IntersectionEngine extends Engine{
                 tlc.getIntersection().ChangeTrafficLights(now, el);
             }
 
-//            case TICK -> {
-//                // Advance traffic lights by 0.1 sec (100 ms)
-//                trafficLightController.update(0.1);
-//                tryCEvents();
-//            }
-
         }
     }
 
@@ -95,9 +91,9 @@ public class IntersectionEngine extends Engine{
         // called each C-phase at current clock: allow intersection to start at most one service
         long now = Clock.getInstance().getClock();
         for (Intersection i : intersectionList) {
-            i.tryStartService(now, eventList);
+            i.startPassingIntersection(now, eventList);
         }
-//        intersection1.tryStartService(now, eventList);
+//        intersection1.startPassingIntersection(now, eventList);
     }
 
     @Override
@@ -136,6 +132,11 @@ public class IntersectionEngine extends Engine{
                 Clock.getInstance().setClock(e.getTime());
                 runEvent(e);
                 tryCEvents();
+
+                System.out.println("--- Queue States at time " + Clock.getInstance().getClock() + " ---");
+                for (Intersection i : intersectionList) {
+                    System.out.println("queueA: " + i.getQueueA().size() + " queueB: " + i.getQueueB().size());
+                }
 
 //                duplicate please delete later
 //                if (e.getType() == Event.EventType.TICK) {
