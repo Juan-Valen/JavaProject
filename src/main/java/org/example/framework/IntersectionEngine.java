@@ -54,6 +54,13 @@ public class IntersectionEngine extends Engine{
             el.add(new Event(tA, Event.EventType.ARRIVAL, new Arrival(new Car(i*2), true, intersection1),"Arrival of Car at time: " + (i*2) + " to direction A"));
             el.add(new Event(tB, Event.EventType.ARRIVAL, new Arrival(new Car(i*2+1), false, intersection1),"Arrival of Car at time: " + (i*2+1) + " to direction B"));
         }
+
+        // schedule initial traffic light change
+        el.add(new Event(0, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection1), "Initial Traffic Light Change Event for: " + intersection1.getName()));
+
+        //set initial traffic light states
+        trafficLightController.setNSGreen();
+
         setSimulationTime(10000);
     }
 
@@ -74,11 +81,11 @@ public class IntersectionEngine extends Engine{
                 tlc.getIntersection().ChangeTrafficLights(now, el);
             }
 
-            case TICK -> {
-                // Advance traffic lights by 0.1 sec (100 ms)
-                trafficLightController.update(0.1);
-                tryCEvents();
-            }
+//            case TICK -> {
+//                // Advance traffic lights by 0.1 sec (100 ms)
+//                trafficLightController.update(0.1);
+//                tryCEvents();
+//            }
 
         }
     }
@@ -100,14 +107,14 @@ public class IntersectionEngine extends Engine{
     }
 
 
-
+    // main loop of the simulation with callback for GUI updates
     public void runWithCallback(Consumer<Event> callback) {
         initialize();
 
 
-        for (long t = 0; t < getSimulationTime(); t += 100) {
-            el.add(new Event(t, Event.EventType.TICK, null, "Simulation tick"));
-        }
+//        for (long t = 0; t < getSimulationTime(); t += 100) {
+//            el.add(new Event(t, Event.EventType.TICK, null, "Simulation tick"));
+//        }
 
 
         while (Clock.getInstance().getClock() < getSimulationTime()) {
@@ -131,20 +138,24 @@ public class IntersectionEngine extends Engine{
                 tryCEvents();
 
 //                duplicate please delete later
-                if (e.getType() == Event.EventType.TICK) {
-                    trafficLightController.update(0.1);
-                }
+//                if (e.getType() == Event.EventType.TICK) {
+//                    trafficLightController.update(0.1);
+//                }
 
                 if (callback != null) {
                     Platform.runLater(() -> callback.accept(e));
                 }
-            } else {
-                // No event? Advance clock manually
-                Clock.getInstance().setClock(Clock.getInstance().getClock() + 100);
             }
+            // THIS SHOULD NOT HAPPEN
+//            else {
+//                // No event? Advance clock manually
+//                Clock.getInstance().setClock(Clock.getInstance().getClock() + 100);
+//            }
 
+            // To do: adjust sleep time based on speed settings
+            // if needed make sleep less when loop takes longer than expected
             try {
-                Thread.sleep(100);
+                Thread.sleep(300);
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }

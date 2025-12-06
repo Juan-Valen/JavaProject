@@ -20,13 +20,13 @@ public class EventList {
 
 
     public void add(Event e) {
-        System.out.printf("Adding to the event list %s at %d ms%n", e.getType(), e.getTime());
+        System.out.printf("Adding to the event list %s at %d %n", e.getType(), e.getTime());
         eventList.add(e);
     }
 
     public Event remove() {
         if (eventList.isEmpty()) return null;
-        System.out.printf("Removing from the event list %s at %d ms%n",
+        System.out.printf("Removing from the event list %s at %d %n",
                 eventList.peek().getType(), eventList.peek().getTime() );
         return eventList.remove();
     }
@@ -35,7 +35,8 @@ public class EventList {
         if (eventList.isEmpty()) return null;
         Event e = eventList.poll();
         System.out.println(" ");
-        System.out.printf("Polling from the event list %s at %d ms%n", e.getType(), e.getTime());        return e;
+        System.out.printf("Polling from the event list %s at %d %n", e.getType(), e.getTime());
+        return e;
     }
 
 

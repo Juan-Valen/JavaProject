@@ -9,9 +9,9 @@ import java.util.List;
 public class TrafficLightController {
 
 //    delay after green light changes to yellow
-    private static final int greenDelay = 2;
+    private static final int greenDelay = 200;
 //    delay after yellow light changes to red
-    private static final int yellowDelay = 5;
+    private static final int yellowDelay = 600;
 
     private final TrafficLight north = new TrafficLight("NORTH");
     private final TrafficLight south = new TrafficLight("SOUTH");
@@ -95,24 +95,21 @@ public class TrafficLightController {
 
                         return yellowDelay;
                     }
-                    case RED -> {
-                        // This case should not occur in a standard 4-way intersection
-                        // lmao yeah XD
-                    }
                 }
             }
 
         }
+        return 0; // should never reach here
     }
 
-    private void setNSGreen() {
+    public void setNSGreen() {
         north.setState(TrafficLight.State.GREEN);
         south.setState(TrafficLight.State.GREEN);
         east.setState(TrafficLight.State.RED);
         west.setState(TrafficLight.State.RED);
     }
 
-    private void setEWGreen() {
+    public void setEWGreen() {
         north.setState(TrafficLight.State.RED);
         south.setState(TrafficLight.State.RED);
         east.setState(TrafficLight.State.GREEN);

@@ -36,14 +36,14 @@ public class Intersection {
         }
         System.out.println(" ");
         System.out.println("---------- HandleArrival: ------");
-        System.out.printf("%s ARRIVE %s from %s at %.0f ms\n",
+        System.out.printf("%s ARRIVE %s from %s at %.0f \n",
                  name, a.car, a.fromA ? "A" : "B", (double) ClockTime());
     }
 
     public void completeService(Departure d, long now, EventList eventList) {
         System.out.println(" ");
         System.out.println("---------- CompleteService: ------");
-        System.out.printf("%s COMPLETE %s from %s at %.0f ms\n",  name, d.car, d.fromA ? "A" : "B",(double) now);
+        System.out.printf("%s COMPLETE %s from %s at %.0f \n",  name, d.car, d.fromA ? "A" : "B",(double) now);
         // route to next intersection (instant arrival at same simulated time)
         if (next != null) {
             eventList.add(new Event(now, Event.EventType.ARRIVAL, new Arrival(d.car, true, next), "Arrival from previous intersection into next intersection")); // assume next intersection treats all as direction A
@@ -56,8 +56,13 @@ public class Intersection {
     public void ChangeTrafficLights(long now, EventList eventList) {
         System.out.println(" ");
         System.out.println("---------- ChangeTrafficLights: ------");
-        System.out.printf("%s CHANGING TRAFFIC LIGHTS at %.0f ms\n", name, (double) ClockTime());
+        System.out.printf("%s CHANGING TRAFFIC LIGHTS at %.0f \n", name, (double) ClockTime());
         int timeToNext = trafficLightController.changeLights();
+        // schedule next light change
+        //changeLights returns 0 if light is somehow not red, green, or yellow
+        if (timeToNext != 0) {
+            eventList.add(new Event(now + timeToNext, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(this), "Traffic Light Change Event for: " + this.name) );
+        }
     }
 
 
@@ -120,5 +125,8 @@ public class Intersection {
         return next;
     }
 
+    public String getName() {
+        return name;
+    }
 
 }
