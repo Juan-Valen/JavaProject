@@ -7,17 +7,17 @@ import org.example.framework.EventList;
 import java.util.*;
 
 public class Intersection {
-    private final String name;
-    private final LinkedList<Car> queueA = new LinkedList<>(); // queue for direction A, the main direction
-    private final LinkedList<Car> queueB = new LinkedList<>(); // queue for direction B, the secondary blocking direction
-    private boolean greenA = true; // which direction is allowed to start service, ie which queue has the green light
-    private boolean busy = false; // service in progress
-    private final Intersection next; // next intersection in chain, nullable
-    private final Random rnd = new Random();
-    private final long minService;
-    private final long maxService;
+    protected final String name;
+    protected final LinkedList<Car> queueA = new LinkedList<>(); // queue for direction A, the main direction
+    protected final LinkedList<Car> queueB = new LinkedList<>(); // queue for direction B, the secondary blocking direction
+    protected boolean greenA = true; // which direction is allowed to start service, ie which queue has the green light
+    protected boolean busy = false; // service in progress
+    protected final Intersection next; // next intersection in chain, nullable
+    protected final Random rnd = new Random();
+    protected final long minService;
+    protected final long maxService;
 
-    private TrafficLightController trafficLightController;
+    protected TrafficLightController trafficLightController;
 
 
     public Intersection(String name, Intersection next, long minService, long maxService, TrafficLightController controller) {
@@ -38,66 +38,37 @@ public class Intersection {
         System.out.println("---------- HandleArrival: ------");
         System.out.printf("%s ARRIVE %s from %s at %.0f \n",
                  name, a.car, a.fromA ? "A" : "B", (double) ClockTime());
+        System.out.println("QueueA size: " + queueA.size() + ", QueueB size: " + queueB.size());
     }
 
     public void completeService(Departure d, long now, EventList eventList) {
         System.out.println(" ");
         System.out.println("---------- CompleteService: ------");
-        System.out.printf("%s COMPLETE %s from %s at %.0f \n",  name, d.car, d.fromA ? "A" : "B",(double) now);
+        System.out.printf("%s COMPLETE %s from %s to %s at %.0f \n", name, d.car, d.fromA ? "A" : "B",next != null ? next.getName() : "", (double) now);
         // route to next intersection (instant arrival at same simulated time)
-        if (next != null) {
-            eventList.add(new Event(now, Event.EventType.ARRIVAL, new Arrival(d.car, true, next), "Arrival from previous intersection into next intersection")); // assume next intersection treats all as direction A
+        // B direction cars are absorbed and do not continue to next intersection
+        if (next != null && d.fromA) {
+            eventList.add(new Event(now, Event.EventType.ARRIVAL, new Arrival(d.car, d.fromA, next), "Arrival from previous intersection into next intersection")); // assume next intersection treats all as direction A
         }
         // mark service done and flip green (alternate queues)
         busy = false;
-        greenA = !greenA;
+        System.out.println("marking " + name + " not busy");
     }
 
     public void ChangeTrafficLights(long now, EventList eventList) {
-        System.out.println(" ");
-        System.out.println("---------- ChangeTrafficLights: ------");
-        System.out.printf("%s CHANGING TRAFFIC LIGHTS at %.0f \n", name, (double) ClockTime());
-        int timeToNext = trafficLightController.changeLights();
-        // schedule next light change
-        //changeLights returns 0 if light is somehow not red, green, or yellow
-        if (timeToNext != 0) {
-            eventList.add(new Event(now + timeToNext, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(this), "Traffic Light Change Event for: " + this.name) );
-        }
+        // this does nothing in the superclass and is overridden in TrafficLightIntersection
+        // I don't know
     }
-
 
     // Called in C-phase for the current simulation time; if possible start one service and schedule DEPARTURE
 
-    public void tryStartService(long now, EventList eventList) {
-        if (busy) return;
-
-        // Check which directions are green
-        boolean nsGreen = trafficLightController.getNorthState() == TrafficLight.State.GREEN
-                || trafficLightController.getSouthState() == TrafficLight.State.GREEN;
-        boolean ewGreen = trafficLightController.getEastState() == TrafficLight.State.GREEN
-                || trafficLightController.getWestState() == TrafficLight.State.GREEN;
-
-        LinkedList<Car> activeQueue = null;
-
-        if (nsGreen && !queueA.isEmpty()) {
-            activeQueue = queueA;
-        } else if (ewGreen && !queueB.isEmpty()) {
-            activeQueue = queueB;
-        }
-
-        if (activeQueue == null) return;
-
-        Car car = activeQueue.removeFirst();
-        busy = true;
-
-        long service = minService + rnd.nextInt((int)(maxService - minService));
-        long completion = now + service;
-        eventList.add(new Event(completion, Event.EventType.DEPARTURE, new Departure(car, nsGreen, this), "Departure after service"));
+    public void startPassingIntersection(long now, EventList eventList) {
+        // this does nothing in the superclass and is overridden in TrafficLightIntersection
     }
 
 
 
-    private long ClockTime() {
+    protected long ClockTime() {
         return org.example.framework.Clock.getInstance().getClock();
     }
 

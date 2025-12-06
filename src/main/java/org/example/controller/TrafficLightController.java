@@ -9,9 +9,9 @@ import java.util.List;
 public class TrafficLightController {
 
 //    delay after green light changes to yellow
-    private static final int greenDelay = 200;
+    private static final int greenDelay = 100;
 //    delay after yellow light changes to red
-    private static final int yellowDelay = 600;
+    private static final int yellowDelay = 300;
 
     private final TrafficLight north = new TrafficLight("NORTH");
     private final TrafficLight south = new TrafficLight("SOUTH");
