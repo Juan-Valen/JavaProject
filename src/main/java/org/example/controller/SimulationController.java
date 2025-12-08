@@ -13,7 +13,6 @@ import org.example.model.Arrival;
 import org.example.model.Departure;
 
 
-import org.example.model.Intersection;
 import org.example.view.HomeView;
 
 import java.util.*;
@@ -70,7 +69,7 @@ public class SimulationController {
 
     private void updateView(Event event) {
         Platform.runLater(() -> {
-            view.updateLights(engine.getTrafficLightController());
+            view.initLights(engine.getTrafficLightController());
             view.updateQueues(engine.getIntersection1().getQueueStates());
 
             if (event.getType() == Event.EventType.ARRIVAL && event.getPayload() instanceof Arrival) {

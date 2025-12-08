@@ -106,7 +106,7 @@ public class HomeView extends Application {
         TrafficLightController trafficLightController = new TrafficLightController();
 
         // Initialize traffic lights
-        updateLights(trafficLightController);
+        initLights(trafficLightController);
 
         // Start simulation
         IntersectionEngine intersectionEngine = new IntersectionEngine();
@@ -136,7 +136,7 @@ public class HomeView extends Application {
 
 
 
-    public void updateLights(TrafficLightController controller) {
+    public void initLights(TrafficLightController controller) {
 
         if (northLight == null || southLight == null || eastLight == null || westLight == null) {
             // UI not ready; ignore or log

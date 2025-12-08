@@ -3,6 +3,7 @@ package org.example.model;
 import org.example.controller.TrafficLightController;
 import org.example.framework.Event;
 import org.example.framework.EventList;
+import org.example.framework.IntersectionEngine;
 
 import java.util.LinkedList;
 
@@ -24,7 +25,7 @@ public class BareIntersection extends Intersection{
         Car car = null;
 
         // determine service time
-        long serviceTime = minService + rnd.nextInt((int) (maxService - minService));
+        long serviceTime = IntersectionEngine.getTimeToCrossIntersection() + (long) IntersectionEngine.getDriverReactionTimeDist().sample();
 
         // if one of the queues is empty, serve from the other
         if (queueA.isEmpty() || queueB.isEmpty()) {

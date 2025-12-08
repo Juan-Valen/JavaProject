@@ -5,6 +5,7 @@ public class Car {
     private long startTime;
     private long endTime;
     static private int next = 0;
+    private boolean waitingAtLight = false;
 
     public static void main(String[] args) {
         Car car = new Car(System.currentTimeMillis());
@@ -33,16 +34,6 @@ public class Car {
 
     public Car(long startTime) {
         this.startTime = startTime;
-        this.endTime = startTime;
-        id = next;
-        next++;
-    }
-
-    public Car() {
-        this.startTime = 0;
-        this.endTime = 0;
-        id = next;
-        next++;
     }
 
     public int getId() {
@@ -71,6 +62,14 @@ public class Car {
 
     public long timeSpent() {
         return endTime - startTime;
+    }
+
+    public boolean isWaitingAtLight() {
+        return waitingAtLight;
+    }
+
+    public void setWaitingAtLight(boolean waitingAtLight) {
+        this.waitingAtLight = waitingAtLight;
     }
 
 
