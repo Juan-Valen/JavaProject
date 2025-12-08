@@ -6,6 +6,7 @@ public class Car {
     private long endTime;
     static private int next = 0;
     private boolean waitingAtLight = false;
+    private int timesMoved = 0;
 
     public static void main(String[] args) {
         Car car = new Car(System.currentTimeMillis());
@@ -78,4 +79,11 @@ public class Car {
         return "Car{id=" + id + "}"; // or include arrival time, etc.
     }
 
+    public int getTimesMoved() {
+        return timesMoved;
+    }
+
+    public void incrementTimesMoved() {
+        this.timesMoved += 1;
+    }
 }

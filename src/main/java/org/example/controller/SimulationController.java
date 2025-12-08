@@ -23,33 +23,36 @@ public class SimulationController {
     private final Map<Car, Circle> carNodes = new HashMap<>();
     private Thread simulationThread;
 
-    // COORDINATES FOR CAR ANIMATION
-    private static final double START_X_N = 300;
-    private static final double START_Y_N = 0;
-    private static final double START_X_S = 380;
-    private static final double START_Y_S = 700;
-    private static final double START_X_E = 700;
-    private static final double START_Y_E= 300;
-    private static final double START_X_W = 0;
-    private static final double START_Y_W = 380;
+    private static final double ROAD_LENGTH = 290;
+    private static final int STEPS_TO_NEXT_INTERSECTION = 1;
 
-    private static final double END_X_N = 300;
-    private static final double END_Y_N = 700;
-    private static final double END_X_S = 380;
+    // COORDINATES FOR CAR ANIMATION
+    private static final double START_X_N = 200;
+    private static final double START_Y_N = 0;
+    private static final double START_X_S = 80;
+    private static final double START_Y_S = 320;
+    private final double START_X_E = 700;
+    private static final double START_Y_E= 160;
+    private static final double START_X_W = 0;
+    private static final double START_Y_W = 320;
+
+    private static final double END_X_N = 200;
+    private static final double END_Y_N = 320;
+    private static final double END_X_S = 80;
     private static final double END_Y_S = 0;
     private static final double END_X_E = 0;
-    private static final double END_Y_E = 300;
-    private static final double END_X_W = 700;
-    private static final double END_Y_W = 380;
+    private static final double END_Y_E = 150;
+    private static final double END_X_W = 320;
+    private static final double END_Y_W = 80;
 
-    private static final double STOP_X_N = 300;
-    private static final double STOP_Y_N = 260;
-    private static final double STOP_X_S = 380;
-    private static final double STOP_Y_S = 380;
-    private static final double STOP_X_E = 440;
-    private static final double STOP_Y_E = 300;
-    private static final double STOP_X_W = 260;
-    private static final double STOP_Y_W = 380;
+    private static final double STOP_X_N = 200;
+    private static final double STOP_Y_N = 80;
+    private static final double STOP_X_S = 100;
+    private static final double STOP_Y_S = 80;
+    private static final double STOP_X_E = 500;
+    private static final double STOP_Y_E = 150;
+    private static final double STOP_X_W = 80;
+    private static final double STOP_Y_W = 80;
 
 
     public SimulationController(IntersectionEngine engine, HomeView view) {
@@ -77,11 +80,11 @@ public class SimulationController {
                 Car car = arrival.car;
 
                 // Create car node
-                Circle carShape = new Circle(10, arrival.fromA ? Color.BLUE : Color.RED);
-                double startX = arrival.fromA ? START_X_N : START_X_E;
+                Circle carShape = new Circle(7, arrival.fromA ? Color.BLUE : Color.RED);
+                double startX = arrival.fromA ? START_X_N* view.getAmountOfIntersections() : START_X_E * view.getAmountOfIntersections();
                 double startY = arrival.fromA ? START_Y_N : START_Y_E;
-                double stopX = arrival.fromA ? STOP_X_N : STOP_X_E;
-                double stopY = arrival.fromA ? STOP_Y_N : STOP_Y_E;
+                double stopX = arrival.fromA ? (START_X_N+1*(ROAD_LENGTH* view.getAmountOfIntersections())- 780) : (START_X_E+1* (ROAD_LENGTH * view.getAmountOfIntersections())- 780);
+                double stopY = arrival.fromA ? START_Y_N : START_Y_E;
 
                 carShape.setCenterX(startX);
                 carShape.setCenterY(startY);
@@ -89,49 +92,38 @@ public class SimulationController {
                 carNodes.put(car, carShape);
 
                 // Animate to stop position
-                TranslateTransition moveToStop = new TranslateTransition(Duration.millis(1000), carShape);
-                moveToStop.setToX(stopX - startX);
-                moveToStop.setToY(stopY - startY);
-                moveToStop.play();
+                TranslateTransition moveToFirstStop = new TranslateTransition(Duration.millis(500), carShape);
+                moveToFirstStop.setToX(stopX - startX);
+                moveToFirstStop.setToY(stopY - startY);
+                moveToFirstStop.play();
+                car.incrementTimesMoved();
+
             }
 
+
             if (event.getType() == Event.EventType.DEPARTURE && event.getPayload() instanceof Departure) {
+
                 Departure departure = (Departure) event.getPayload();
                 Car car = departure.car;
 
                 Circle carShape = carNodes.get(car);
-                if (carShape != null) {
-                    double endX = departure.fromA ? END_X_N : END_X_E;
-                    double endY = departure.fromA ? END_Y_N : END_Y_E;
+                if (carShape == null) return;
 
-                    TranslateTransition moveToEnd = new TranslateTransition(Duration.millis(1000), carShape);
-                    moveToEnd.setToX(endX - carShape.getCenterX());
-                    moveToEnd.setToY(endY - carShape.getCenterY());
-                    moveToEnd.play();
+                TranslateTransition step = new TranslateTransition(Duration.millis(500), carShape);
+                step.setByX(-ROAD_LENGTH); // east-to-west example
+                step.play();
+
+                car.incrementTimesMoved();
+                System.out.println("Car step = " + car.getTimesMoved());
+
+                if (car.getTimesMoved() >= STEPS_TO_NEXT_INTERSECTION) {
+                    carNodes.remove(car);
+                    System.out.println("Car reached next intersection!");
                 }
             }
-        });
+           });
     }
-
-
-    private void animateQueue(List<Car> queue, double startX, double startY, double endX, double endY) {
-        for (Car car : queue) {
-            Circle carShape = new Circle(10, Color.BLUE);
-            carShape.setCenterX(startX);
-            carShape.setCenterY(startY);
-            view.addCarNode(carShape);
-
-            TranslateTransition move = new TranslateTransition(Duration.millis(1000), carShape);
-            move.setToX(endX - startX);
-            move.setToY(endY - startY);
-            move.play();
-        }
-    }
-
     public IntersectionEngine getEngine() {
         return engine;
     }
 }
-
-
-

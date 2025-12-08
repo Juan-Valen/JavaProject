@@ -1,17 +1,15 @@
 
 package org.example.view;
 
-import javafx.scene.shape.Line;
-import org.example.controller.HomeController;
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
+import org.example.controller.HomeController;
 import org.example.controller.SimulationController;
 import org.example.controller.TrafficLightController;
 import org.example.framework.IntersectionEngine;
@@ -20,7 +18,7 @@ import org.example.model.TrafficLight;
 
 import java.util.Map;
 
-public class HomeView extends Application {
+public class HomeView {
 
     // Traffic lights
     private Circle northLight;
@@ -28,57 +26,12 @@ public class HomeView extends Application {
     private Circle eastLight;
     private Circle westLight;
     private Pane intersectionPane = new Pane();
+    private StartingView startingView;
 
-
-    @Override
-    public void start(Stage window) {
-        // Intersection visualization
-        intersectionPane.setPrefSize(400, 400);
-
-        // Draw roads
-        Rectangle verticalRoad = new Rectangle(275, 0, 150, 700);
-        verticalRoad.setFill(Color.LIGHTGRAY);
-        Rectangle horizontalRoad = new Rectangle(0, 275, 700, 150);
-        horizontalRoad.setFill(Color.LIGHTGRAY);
-        Rectangle roadCenter = new Rectangle(275,275,150,150);
-        roadCenter.setFill(Color.LIGHTGRAY);
-
-
-        // Draw road lines
-        // Vertical
-        Line verticalRoadLine = new Line(
-                verticalRoad.getX()+verticalRoad.getWidth() / 2, // x1
-                verticalRoad.getY(),
-                verticalRoad.getX() + verticalRoad.getWidth() / 2,
-                verticalRoad.getY() + verticalRoad.getHeight()
-                );
-        verticalRoadLine.setStroke(Color.WHITE);
-        verticalRoadLine.setStrokeWidth(4);
-        verticalRoadLine.getStrokeDashArray().addAll(20.0, 15.0); // dash length, gap length
-
-        // Horizontal
-        Line horizontalRoadLine = new Line(
-                horizontalRoad.getX()+8,                              // x1 left
-                horizontalRoad.getY() + horizontalRoad.getHeight() / 2, // y1 at center of road
-                horizontalRoad.getX() + horizontalRoad.getWidth(), // x2 right
-                horizontalRoad.getY() + horizontalRoad.getHeight() / 2  // y2 at center of road
-        );
-        horizontalRoadLine.setStroke(Color.WHITE);
-        horizontalRoadLine.setStrokeWidth(4);
-        horizontalRoadLine.getStrokeDashArray().addAll(20.0, 15.0);
-
-
-        // Traffic lights
-
-        northLight = new Circle(230, 230, 15);
-        southLight = new Circle(460, 460, 15);
-        eastLight  = new Circle(460, 230, 15);
-        westLight  = new Circle(230, 460, 15);
-
-        intersectionPane.getChildren().addAll(verticalRoad, horizontalRoad,
-                verticalRoadLine, horizontalRoadLine, roadCenter,
-                northLight, southLight, eastLight, westLight);
-
+    public Scene buildScene(StartingView startingView) {
+        if(startingView == null){
+            return null;
+        }
         // Control panel
         HBox controls = new HBox(10);
         Button pauseBtn = new Button("Pause");
@@ -96,12 +49,17 @@ public class HomeView extends Application {
         root.setCenter(intersectionPane);
         root.setBottom(controls);
 
-        Scene view = new Scene(root, 700, 700);
-        window.setTitle("Traffic Intersection Control");
-        window.setScene(view);
-        window.show();
+        Scene scene = new Scene(root, 700, 700);
 
-        // Create Models
+
+        // Check for the amount of intersections
+        for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
+            Pane inter = buildIntersection(i);
+            root.getChildren().add(inter);
+        }
+
+
+        // Create Models & Controllers
         Queue queue = new Queue();
         TrafficLightController trafficLightController = new TrafficLightController();
 
@@ -110,8 +68,7 @@ public class HomeView extends Application {
 
         // Start simulation
         IntersectionEngine intersectionEngine = new IntersectionEngine();
-        SimulationController simulationController =
-                new SimulationController(intersectionEngine, this);
+        SimulationController simulationController = new SimulationController(intersectionEngine, this);
         simulationController.startSimulation();
 
         // Controller
@@ -120,11 +77,9 @@ public class HomeView extends Application {
         resumeBtn.setOnAction(e -> controller.resumeSimulation());
         addTimeBtn.setOnAction(e -> controller.addTime(timeInput.getText()));
         addCarsBtn.setOnAction(e -> controller.addCars(carInput.getText()));
-    }
-    public static void main(String[] args) {
-        launch(args);
-    }
 
+        return scene;
+    }
 
     private static Color toColor(TrafficLight.State s) {
         return switch (s) {
@@ -139,17 +94,14 @@ public class HomeView extends Application {
     public void initLights(TrafficLightController controller) {
 
         if (northLight == null || southLight == null || eastLight == null || westLight == null) {
-            // UI not ready; ignore or log
             System.err.println("Lights not initialized yet; skipping update.");
             return;
         }
-
         northLight.setFill(toColor(controller.getNorth().getState()));
         southLight.setFill(toColor(controller.getSouth().getState()));
         eastLight.setFill(toColor(controller.getEast().getState()));
         westLight.setFill(toColor(controller.getWest().getState()));
     }
-
 
     public void updateQueues(Map<String, Integer> queues) {
         System.out.println("Cars in queue: " + queues);
@@ -159,6 +111,59 @@ public class HomeView extends Application {
     public void addCarNode(Circle carShape) {
         intersectionPane.getChildren().add(carShape);
     }
+    public Pane buildIntersection(int position){
+    Pane interPane = new Pane();
+        // Intersection visualization
+        interPane.setPrefSize(400, 400);
+
+        // Draw roads
+        Rectangle verticalRoad = new Rectangle(140+(140*position*2), 0, 80, 320);
+        verticalRoad.setFill(Color.LIGHTGRAY);
+        Rectangle horizontalRoad = new Rectangle((140*(position*2)), 140, 320, 80);
+        horizontalRoad.setFill(Color.LIGHTGRAY);
+        Rectangle roadCenter = new Rectangle(140+(140*position*2), 140, 80, 80);
+        roadCenter.setFill(Color.LIGHTGRAY);
+
+        // Draw road lines
+        Line verticalRoadLine = new Line(
+                verticalRoad.getX() + verticalRoad.getWidth() / 2,
+                verticalRoad.getY(),
+                verticalRoad.getX() + verticalRoad.getWidth() / 2,
+                verticalRoad.getY() + verticalRoad.getHeight()
+        );
+        verticalRoadLine.setStroke(Color.WHITE);
+        verticalRoadLine.setStrokeWidth(2);
+        verticalRoadLine.getStrokeDashArray().addAll(20.0, 15.0);
+
+        Line horizontalRoadLine = new Line(
+                horizontalRoad.getX() + 8,
+                horizontalRoad.getY() + horizontalRoad.getHeight() / 2,
+                horizontalRoad.getX() + horizontalRoad.getWidth(),
+                horizontalRoad.getY() + horizontalRoad.getHeight() / 2
+        );
+        horizontalRoadLine.setStroke(Color.WHITE);
+        horizontalRoadLine.setStrokeWidth(2);
+        horizontalRoadLine.getStrokeDashArray().addAll(20.0, 15.0);
+
+        // Traffic lights
+        northLight = new Circle(230, 230, 15);
+        southLight = new Circle(460, 460, 15);
+        eastLight  = new Circle(460, 230, 15);
+        westLight  = new Circle(230, 460, 15);
+
+        interPane.getChildren().addAll(
+                verticalRoad, horizontalRoad,
+                verticalRoadLine, horizontalRoadLine, roadCenter,
+                northLight, southLight, eastLight, westLight
+        );
+        return interPane;
+    }
+
+    public double getAmountOfIntersections(){
+        if(startingView == null){
+            return 0;
+        }
+        return startingView.getAmountOfIntersections();
+    }
 
 }
-
