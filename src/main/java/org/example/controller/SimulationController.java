@@ -57,8 +57,8 @@ public class SimulationController {
 
     private void updateView(Event event) {
         Platform.runLater(() -> {
-            view.updateLights(engine.getTrafficLightController());
-            view.updateQueues(engine.getIntersection1().getQueueStates());
+            view.initLights(engine.getTrafficLightController());
+            view.updateQueues(engine.getIntersectionList().get(0).getQueueStates());
 
             if (event.getType() == Event.EventType.ARRIVAL && event.getPayload() instanceof Arrival) {
                 Arrival arrival = (Arrival) event.getPayload();

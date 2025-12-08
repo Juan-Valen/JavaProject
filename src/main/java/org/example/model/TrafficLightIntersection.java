@@ -3,13 +3,15 @@ package org.example.model;
 import org.example.controller.TrafficLightController;
 import org.example.framework.Event;
 import org.example.framework.EventList;
+import org.example.framework.IntersectionEngine;
 
 import java.util.LinkedList;
 
 public class TrafficLightIntersection extends  Intersection {
+    String lastPassedDirection;
 
-    public TrafficLightIntersection(String name, Intersection next, long minService, long maxService, TrafficLightController controller) {
-        super(name, next, minService, maxService, controller);
+    public TrafficLightIntersection(String name, Intersection next, TrafficLightController controller) {
+        super(name, next, controller);
     }
 
     @Override
@@ -23,6 +25,27 @@ public class TrafficLightIntersection extends  Intersection {
         if (timeToNext != 0) {
             eventList.add(new Event(now + timeToNext, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(this), "Traffic Light Change Event for: " + this.name) );
         }
+    }
+
+    public void handleArrival(Arrival a) {
+
+
+        if (a.fromA) {
+            if (!queueA.isEmpty() || trafficLightController.getNorthState() == TrafficLight.State.RED) {
+                a.car.setWaitingAtLight(true);
+            }
+            queueA.addLast(a.car);
+        } else {
+            if (!queueB.isEmpty() || trafficLightController.getEastState() == TrafficLight.State.RED) {
+                a.car.setWaitingAtLight(true);
+            }
+            queueB.addLast(a.car);
+        }
+        System.out.println(" ");
+        System.out.println("---------- HandleArrival: ------");
+        System.out.printf("%s ARRIVE %s from %s at %.0f \n",
+                name, a.car, a.fromA ? "A" : "B", (double) ClockTime());
+        System.out.println("QueueA size: " + queueA.size() + ", QueueB size: " + queueB.size());
     }
 
     @Override
@@ -51,8 +74,18 @@ public class TrafficLightIntersection extends  Intersection {
         Car car = activeQueue.removeFirst();
         busy = true;
 
-        long service = minService + rnd.nextInt((int)(maxService - minService));
-        long completion = now + service;
-        eventList.add(new Event(completion, Event.EventType.DEPARTURE, new Departure(car, nsGreen, this), "Departure after service"));
+        long timeToPass = now + IntersectionEngine.getTimeToCrossIntersection();
+        long extra = 0;
+
+        if (car.isWaitingAtLight()) {
+            car.setWaitingAtLight(false);
+            extra = (long) IntersectionEngine.getDriverReactionTimeDist().sample();
+        }
+
+        if (extra > 0) {
+            long crossingTime = timeToPass + extra;
+        }
+        long crossingTime = timeToPass;
+        eventList.add(new Event(crossingTime, Event.EventType.DEPARTURE, new Departure(car, nsGreen, this), "Departure after service"));
     }
 }

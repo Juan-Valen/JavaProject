@@ -1,10 +1,15 @@
 package org.example.model;
 
 import org.example.controller.TrafficLightController;
+import org.example.distributions.Normal;
 import org.example.framework.Event;
 import org.example.framework.EventList;
+import org.example.framework.IntersectionEngine;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.lang.Math.round;
 
 public class Intersection {
     protected final String name;
@@ -14,17 +19,14 @@ public class Intersection {
     protected boolean busy = false; // service in progress
     protected final Intersection next; // next intersection in chain, nullable
     protected final Random rnd = new Random();
-    protected final long minService;
-    protected final long maxService;
+    protected final Normal normalDist = null;
 
     protected TrafficLightController trafficLightController;
 
 
-    public Intersection(String name, Intersection next, long minService, long maxService, TrafficLightController controller) {
+    public Intersection(String name, Intersection next, TrafficLightController controller) {
         this.name = name;
         this.next = next;
-        this.minService = minService;
-        this.maxService = maxService;
         this.trafficLightController = controller;
     }
 
@@ -49,6 +51,9 @@ public class Intersection {
         // B direction cars are absorbed and do not continue to next intersection
         if (next != null && d.fromA) {
             eventList.add(new Event(now, Event.EventType.ARRIVAL, new Arrival(d.car, d.fromA, next), "Arrival from previous intersection into next intersection")); // assume next intersection treats all as direction A
+        } else if (next == null && d.fromA) {
+            IntersectionEngine.getCarsArrived().incrementAndGet();
+            IntersectionEngine.addPassThroughTime(d.car.getStartTime());
         }
         // mark service done and flip green (alternate queues)
         busy = false;
@@ -60,8 +65,27 @@ public class Intersection {
         // I don't know
     }
 
-    // Called in C-phase for the current simulation time; if possible start one service and schedule DEPARTURE
+    public void queueArrivals(QueueArrivals qa,long now, EventList eventList) {
+        System.out.println(" ");
+        System.out.println("---------- QueueArrivals: ------");
+        System.out.printf("%s QUEUE ARRIVALS at %.0f \n", name, (double) ClockTime());
+        // add arrivals
+        // use normal distribution to determine number of arrivals, get from IntersectionEngine max car group size
+        Normal dist = IntersectionEngine.getCarGroupSizeDist();
+        for (int i = 0; i < round(dist.sample()); i++) {
+            eventList.add(new Event(now+i, Event.EventType.ARRIVAL, new Arrival(new Car(now+i), qa.queueA, this), "Arrival of Car at time: " + (now+i) + " to intersection " + name + " from direction B"));
 
+            if (qa.queueA) {
+                IntersectionEngine.getCarsSent().incrementAndGet();
+            }
+        }
+
+        // schedule next QUEUE_ARRIVALS event
+        eventList.add(new Event(now + ((long)IntersectionEngine.getCarArrivalIntervalDist().sample()), Event.EventType.QUEUE_ARRIVALS, new QueueArrivals(this, qa.queueA), "Next Queue Arrivals Event for: " + name));
+
+    }
+
+    // Called in C-phase for the current simulation time; if possible start one service and schedule DEPARTURE
     public void startPassingIntersection(long now, EventList eventList) {
         // this does nothing in the superclass and is overridden in TrafficLightIntersection
     }

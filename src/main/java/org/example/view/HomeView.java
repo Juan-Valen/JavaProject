@@ -14,12 +14,20 @@ import org.example.controller.SimulationController;
 import org.example.controller.TrafficLightController;
 import org.example.framework.IntersectionEngine;
 import org.example.model.TrafficLight;
+import org.example.model.TrafficLightIntersection;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class HomeView {
 
-
+    // Traffic lights
+    private Circle northLight;
+    private Circle southLight;
+    private Circle eastLight;
+    private Circle westLight;
     private Pane intersectionPane = new Pane();
     private StartingView startingView;
 
@@ -44,13 +52,13 @@ public class HomeView {
         root.setCenter(intersectionPane);
         root.setBottom(controls);
 
-        Scene scene = new Scene(root, 1000, 600);
+        Scene scene = new Scene(root, 700, 700);
 
 
         // Check for the amount of intersections
         for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
             Pane inter = buildIntersection(i);
-            intersectionPane.getChildren().addAll(inter.getChildren());
+            root.getChildren().add(inter);
         }
 
 
@@ -58,11 +66,24 @@ public class HomeView {
         TrafficLightController trafficLightController = new TrafficLightController();
 
         // Initialize traffic lights
-        updateLights(trafficLightController);
+        initLights(trafficLightController);
 
         // Start simulation
-        IntersectionEngine intersectionEngine = new IntersectionEngine();
+        IntersectionEngine intersectionEngine = new IntersectionEngine(trafficLightController);
         SimulationController simulationController = new SimulationController(intersectionEngine, this);
+
+        // Temp intersection setup
+        List<String> fauxIntersections = new ArrayList<>();
+        for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
+            if (Math.random() < 0.5) {
+                fauxIntersections.add("Bare Intersection");
+            } else {
+                fauxIntersections.add("Traffic Light Intersection");
+            }
+        }
+
+        intersectionEngine.setIntersections(fauxIntersections);
+
         simulationController.startSimulation();
 
         // Controller
@@ -83,17 +104,18 @@ public class HomeView {
         };
     }
 
-    public void updateLights(TrafficLightController controller) {
-        System.out.println("Update lights");
 
-        /*if (northLight == null || southLight == null || eastLight == null || westLight == null) {
+
+    public void initLights(TrafficLightController controller) {
+
+        if (northLight == null || southLight == null || eastLight == null || westLight == null) {
             System.err.println("Lights not initialized yet; skipping update.");
             return;
         }
         northLight.setFill(toColor(controller.getNorth().getState()));
         southLight.setFill(toColor(controller.getSouth().getState()));
         eastLight.setFill(toColor(controller.getEast().getState()));
-        westLight.setFill(toColor(controller.getWest().getState()));*/
+        westLight.setFill(toColor(controller.getWest().getState()));
     }
 
     public void updateQueues(Map<String, Integer> queues) {

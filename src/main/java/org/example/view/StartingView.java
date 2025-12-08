@@ -51,7 +51,7 @@ public class StartingView extends Application {
         TextField carsInMaxPerGroup = new TextField();
         carsInMaxPerGroup.setPromptText("Cars in max per group");
         TextField medianArrivalTime = new TextField();
-        medianArrivalTime.setPromptText("Median arrival time");
+        medianArrivalTime.setPromptText("Median arrival time in seconds");
 
         Button startButton = new Button("Start Simulation");
         startButton.setOnAction(e -> {
