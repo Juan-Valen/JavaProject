@@ -5,7 +5,9 @@ import org.example.controller.TrafficLightController;
 import org.example.distributions.Normal;
 import org.example.model.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 
@@ -15,7 +17,7 @@ public class IntersectionEngine extends Engine{
     private TrafficLightIntersection intersection1;
 
     // List of all intersections
-    private List<Intersection> intersectionList = new java.util.ArrayList<>();
+    private List<Intersection> intersectionList = new ArrayList<>();
 
     // Event list
     private EventList el;
@@ -32,8 +34,8 @@ public class IntersectionEngine extends Engine{
     // Traffic light controller shared by intersections
     private TrafficLightController trafficLightController;
 
-    public IntersectionEngine() {
-        this.trafficLightController = new TrafficLightController();
+    public IntersectionEngine(TrafficLightController trafficLightController) {
+        this.trafficLightController = trafficLightController;
     }
 
     public TrafficLightController getTrafficLightController() {
@@ -45,23 +47,23 @@ public class IntersectionEngine extends Engine{
     }
 
     // temporary variables and methods for checking arrivals and completions
-    public static int carsSent = 0;
-    public static int carsArrived = 0;
-    static List<Long> passThroughTimes = new java.util.ArrayList<>();
+    public static AtomicInteger carsSent = new AtomicInteger(0);
+    private static AtomicInteger carsArrived = new AtomicInteger(0);
+    static List<Long> passThroughTimes = new ArrayList<>();
 
-    public static int getCarsSent() {
+    public static AtomicInteger getCarsSent() {
         return carsSent;
     }
 
-    public static int getCarsArrived() {
+    public static AtomicInteger getCarsArrived() {
         return carsArrived;
     }
 
-    public static void setCarsSent(int carsSent) {
+    public static void setCarsSent(AtomicInteger carsSent) {
         IntersectionEngine.carsSent = carsSent;
     }
 
-    public static void setCarsArrived(int carsArrived) {
+    public static void setCarsArrived(AtomicInteger carsArrived) {
         IntersectionEngine.carsArrived = carsArrived;
     }
 
@@ -69,7 +71,7 @@ public class IntersectionEngine extends Engine{
         passThroughTimes.add(time);
     }
 
-    private double simulationSpeed = 3; // How many seconds to sleep between events
+    private double simulationSpeed = 1; // How many seconds to sleep between events
 
     private static int timeToCrossIntersection = 10; // time to cross intersection once started
 
@@ -91,42 +93,27 @@ public class IntersectionEngine extends Engine{
         getTrafficLightController().setYellowDelay(yellowdelay);
 
         el = eventList;
-        // chain one intersection (can add more)
-        BareIntersection intersection3 = new BareIntersection("Intersection-3", null, 30, 120, trafficLightController);
-        TrafficLightIntersection intersection2 = new TrafficLightIntersection("Intersection-2", intersection3, 50, 150, trafficLightController);
-        intersection1 = new TrafficLightIntersection("Intersection-1", intersection2, 20, 100, trafficLightController);
-
-        intersectionList.add(intersection1);
-        intersectionList.add(intersection2);
-        intersectionList.add(intersection3);
-
-        // schedule arrivals on both directions
-        //TEMP: fixed arrivals for testing, make random continuous generation later.
-//        for (int i = 0; i < 8; i++) {
-//            long tA = i * 30; // arrivals to direction A
-//            long tB = i * 45 + 10; // arrivals to direction B
-//            el.add(new Event(tA, Event.EventType.ARRIVAL, new Arrival(new Car(i*2), true, intersection1),"Arrival of Car at time: " + (i*2) + " to direction A"));
-//            el.add(new Event(tB, Event.EventType.ARRIVAL, new Arrival(new Car(i*2+1), false, intersection1),"Arrival of Car at time: " + (i*2+1) + " to direction B"));
-//
-//            carsSent++;
-//        }
 
         // schedule initial QUEUE_ARRIVALS events for direction A
-        el.add(new Event(30, Event.EventType.QUEUE_ARRIVALS, new QueueArrivals(intersection1, true), "Initial QUEUE_ARRIVALS Event for direction A at " + intersection1.getName()));
+        el.add(new Event(30, Event.EventType.QUEUE_ARRIVALS, new QueueArrivals(intersectionList.get(0), true), "Initial QUEUE_ARRIVALS Event for direction A at " + intersectionList.get(0).getName()));
 
         // schedule initial QUEUE_ARRIVALS events for direction B
-        el.add(new Event(45, Event.EventType.QUEUE_ARRIVALS, new QueueArrivals(intersection1, false), "Initial QUEUE_ARRIVALS Event for direction B at " + intersection1.getName()));
-        el.add(new Event(45, Event.EventType.QUEUE_ARRIVALS, new QueueArrivals(intersection2, false), "Initial QUEUE_ARRIVALS Event for direction B at " + intersection2.getName()));
-        el.add(new Event(45, Event.EventType.QUEUE_ARRIVALS, new QueueArrivals(intersection3, false), "Initial QUEUE_ARRIVALS Event for direction B at " + intersection3.getName()));
 
+        for (Intersection intersection : intersectionList) {
+            el.add(new Event(45, Event.EventType.QUEUE_ARRIVALS, new QueueArrivals(intersection, false), "Initial QUEUE_ARRIVALS Event for direction B at " + intersection.getName()));
+        }
 
         // schedule initial traffic light change
-        el.add(new Event(600, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection1), "Initial Traffic Light Change Event for: " + intersection1.getName()));
+        for (Intersection intersection : intersectionList) {
+            if (intersection instanceof TrafficLightIntersection) {
+                el.add(new Event(600, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection), "Initial Traffic Light Change Event for: " + intersection.getName()));
+            }
+        }
 
         //set initial traffic light states
         trafficLightController.setNSGreen();
 
-        setSimulationTime(10000);
+        setSimulationTime(1000);
     }
 
     @Override
@@ -224,9 +211,62 @@ public class IntersectionEngine extends Engine{
         return intersection1;
     }
 
+    public List<Intersection> getIntersectionList(){
+        return intersectionList;
+    }
+
+    public void setIntersections(List<String> intersectionTypeList) {
+        List<Intersection> tempIntersectionList = new ArrayList<>();
+
+        // Start from the last intersection type to build the chain backwards
+        switch (intersectionTypeList.get(intersectionTypeList.size()-1)) {
+            case "Bare Intersection" -> {
+                BareIntersection bareIntersection = new BareIntersection("Intersection-" + (intersectionTypeList.size()-1), null, trafficLightController);
+                tempIntersectionList.add(bareIntersection);
+            }
+            case "Traffic Light Intersection" -> {
+                TrafficLightIntersection trafficLightIntersection = new TrafficLightIntersection("Intersection-" + (intersectionTypeList.size()-1), null,  trafficLightController);
+                tempIntersectionList.add(trafficLightIntersection);
+            }
+            default -> {
+                // Skip adding an intersection for "Don't show intersection"
+            }
+        }
+
+        // Remove the last element as it's already processed
+        intersectionTypeList.remove(intersectionTypeList.size()-1);
+
+
+        // Now build the rest of the chain
+        for (int i = intersectionTypeList.size() -1; i >= 0; i--) {
+            String type = intersectionTypeList.get(i);
+            switch (type) {
+                case "Bare Intersection" -> {
+                    BareIntersection bareIntersection = new BareIntersection("Intersection-" + (i+1), tempIntersectionList.get(intersectionTypeList.size()-(i+1)), trafficLightController);
+                    tempIntersectionList.add(bareIntersection);
+                }
+                case "Traffic Light Intersection" -> {
+                    TrafficLightIntersection trafficLightIntersection = new TrafficLightIntersection("Intersection-" + (i+1), tempIntersectionList.get(intersectionTypeList.size()-(i+1)), trafficLightController);
+                    tempIntersectionList.add(trafficLightIntersection);
+                }
+                default -> {
+                    // Skip adding an intersection for "Don't show intersection"
+                }
+            }
+        }
+        // Reverse the list to maintain the original order
+        for (int i = tempIntersectionList.size() -1; i >= 0; i--) {
+            intersectionList.add(tempIntersectionList.get(i));
+        }
+
+        for (Intersection i : intersectionList) {
+            System.out.println("Added to intersection list: " + i.getName() + " of type " + i.getClass().getName());
+        }
+    }
+
 
     public static void main(String[] args) {
-        IntersectionEngine eng = new IntersectionEngine();
+        IntersectionEngine eng = new IntersectionEngine(new TrafficLightController());
         eng.run();
     }
 

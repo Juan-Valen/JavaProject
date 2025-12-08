@@ -13,10 +13,13 @@ import org.example.controller.HomeController;
 import org.example.controller.SimulationController;
 import org.example.controller.TrafficLightController;
 import org.example.framework.IntersectionEngine;
-import org.example.model.Queue;
 import org.example.model.TrafficLight;
+import org.example.model.TrafficLightIntersection;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class HomeView {
 
@@ -60,15 +63,27 @@ public class HomeView {
 
 
         // Create Models & Controllers
-        Queue queue = new Queue();
         TrafficLightController trafficLightController = new TrafficLightController();
 
         // Initialize traffic lights
         initLights(trafficLightController);
 
         // Start simulation
-        IntersectionEngine intersectionEngine = new IntersectionEngine();
+        IntersectionEngine intersectionEngine = new IntersectionEngine(trafficLightController);
         SimulationController simulationController = new SimulationController(intersectionEngine, this);
+
+        // Temp intersection setup
+        List<String> fauxIntersections = new ArrayList<>();
+        for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
+            if (Math.random() < 0.5) {
+                fauxIntersections.add("Bare Intersection");
+            } else {
+                fauxIntersections.add("Traffic Light Intersection");
+            }
+        }
+
+        intersectionEngine.setIntersections(fauxIntersections);
+
         simulationController.startSimulation();
 
         // Controller

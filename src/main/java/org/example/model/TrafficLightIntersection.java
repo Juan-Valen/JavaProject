@@ -10,8 +10,8 @@ import java.util.LinkedList;
 public class TrafficLightIntersection extends  Intersection {
     String lastPassedDirection;
 
-    public TrafficLightIntersection(String name, Intersection next, long minService, long maxService, TrafficLightController controller) {
-        super(name, next, minService, maxService, controller);
+    public TrafficLightIntersection(String name, Intersection next, TrafficLightController controller) {
+        super(name, next, controller);
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.example.framework.EventList;
 import org.example.framework.IntersectionEngine;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.Math.round;
 
@@ -19,17 +20,13 @@ public class Intersection {
     protected final Intersection next; // next intersection in chain, nullable
     protected final Random rnd = new Random();
     protected final Normal normalDist = null;
-    protected final long minService;
-    protected final long maxService;
 
     protected TrafficLightController trafficLightController;
 
 
-    public Intersection(String name, Intersection next, long minService, long maxService, TrafficLightController controller) {
+    public Intersection(String name, Intersection next, TrafficLightController controller) {
         this.name = name;
         this.next = next;
-        this.minService = minService;
-        this.maxService = maxService;
         this.trafficLightController = controller;
     }
 
@@ -55,7 +52,7 @@ public class Intersection {
         if (next != null && d.fromA) {
             eventList.add(new Event(now, Event.EventType.ARRIVAL, new Arrival(d.car, d.fromA, next), "Arrival from previous intersection into next intersection")); // assume next intersection treats all as direction A
         } else if (next == null && d.fromA) {
-            IntersectionEngine.setCarsArrived(IntersectionEngine.getCarsArrived()+1);
+            IntersectionEngine.getCarsArrived().incrementAndGet();
             IntersectionEngine.addPassThroughTime(d.car.getStartTime());
         }
         // mark service done and flip green (alternate queues)
@@ -79,7 +76,7 @@ public class Intersection {
             eventList.add(new Event(now+i, Event.EventType.ARRIVAL, new Arrival(new Car(now+i), qa.queueA, this), "Arrival of Car at time: " + (now+i) + " to intersection " + name + " from direction B"));
 
             if (qa.queueA) {
-                IntersectionEngine.setCarsSent(IntersectionEngine.getCarsSent()+1);
+                IntersectionEngine.getCarsSent().incrementAndGet();
             }
         }
 

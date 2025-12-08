@@ -11,8 +11,8 @@ public class BareIntersection extends Intersection{
     String lastPassedDirection;
 
 
-    public BareIntersection(String name, Intersection next, long minService, long maxService, TrafficLightController controller) {
-        super(name, next, minService, maxService, controller);
+    public BareIntersection(String name, Intersection next, TrafficLightController controller) {
+        super(name, next, controller);
     }
 
     @Override
