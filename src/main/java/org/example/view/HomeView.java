@@ -13,18 +13,13 @@ import org.example.controller.HomeController;
 import org.example.controller.SimulationController;
 import org.example.controller.TrafficLightController;
 import org.example.framework.IntersectionEngine;
-import org.example.model.Queue;
 import org.example.model.TrafficLight;
 
 import java.util.Map;
 
 public class HomeView {
 
-    // Traffic lights
-    private Circle northLight;
-    private Circle southLight;
-    private Circle eastLight;
-    private Circle westLight;
+
     private Pane intersectionPane = new Pane();
     private StartingView startingView;
 
@@ -49,13 +44,13 @@ public class HomeView {
         root.setCenter(intersectionPane);
         root.setBottom(controls);
 
-        Scene scene = new Scene(root, 700, 700);
+        Scene scene = new Scene(root, 1000, 600);
 
 
         // Check for the amount of intersections
         for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
             Pane inter = buildIntersection(i);
-            root.getChildren().add(inter);
+            intersectionPane.getChildren().addAll(inter.getChildren());
         }
 
 
@@ -90,14 +85,16 @@ public class HomeView {
     }
 
     public void updateLights(TrafficLightController controller) {
-        if (northLight == null || southLight == null || eastLight == null || westLight == null) {
+        System.out.println("Update lights");
+
+        /*if (northLight == null || southLight == null || eastLight == null || westLight == null) {
             System.err.println("Lights not initialized yet; skipping update.");
             return;
         }
         northLight.setFill(toColor(controller.getNorth().getState()));
         southLight.setFill(toColor(controller.getSouth().getState()));
         eastLight.setFill(toColor(controller.getEast().getState()));
-        westLight.setFill(toColor(controller.getWest().getState()));
+        westLight.setFill(toColor(controller.getWest().getState()));*/
     }
 
     public void updateQueues(Map<String, Integer> queues) {
@@ -143,10 +140,10 @@ public class HomeView {
         horizontalRoadLine.getStrokeDashArray().addAll(20.0, 15.0);
 
         // Traffic lights
-        northLight = new Circle(230, 230, 15);
-        southLight = new Circle(460, 460, 15);
-        eastLight  = new Circle(460, 230, 15);
-        westLight  = new Circle(230, 460, 15);
+        Circle northLight = new Circle(230, 230, 15);
+        Circle southLight = new Circle(460, 460, 15);
+        Circle eastLight  = new Circle(460, 230, 15);
+        Circle westLight  = new Circle(230, 460, 15);
 
         interPane.getChildren().addAll(
                 verticalRoad, horizontalRoad,

@@ -1,6 +1,7 @@
 
 package org.example.controller;
 
+import javafx.animation.Animation;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.scene.paint.Color;
@@ -13,7 +14,6 @@ import org.example.model.Arrival;
 import org.example.model.Departure;
 
 
-import org.example.model.Intersection;
 import org.example.view.HomeView;
 
 import java.util.*;
@@ -22,38 +22,22 @@ public class SimulationController {
     private IntersectionEngine engine;
     private HomeView view;
     private final Map<Car, Circle> carNodes = new HashMap<>();
+
+    private final Map<Car, Deque<Animation>> queues = new HashMap<>();
+    private final Set<Car> animating = new HashSet<>();
+
     private Thread simulationThread;
 
-    private static final double ROAD_LENGTH = 290;
+    private static final double ROAD_LENGTH = 280;
     private static final int STEPS_TO_NEXT_INTERSECTION = 1;
 
     // COORDINATES FOR CAR ANIMATION
-    private static final double START_X_N = 200;
-    private static final double START_Y_N = 0;
-    private static final double START_X_S = 80;
-    private static final double START_Y_S = 320;
-    private final double START_X_E = 700;
+    private static final double START_X_W = -170;
+    private static final double START_Y_W = 200;
+
+    private final double START_X_E = 1350;
     private static final double START_Y_E= 160;
-    private static final double START_X_W = 0;
-    private static final double START_Y_W = 320;
 
-    private static final double END_X_N = 200;
-    private static final double END_Y_N = 320;
-    private static final double END_X_S = 80;
-    private static final double END_Y_S = 0;
-    private static final double END_X_E = 0;
-    private static final double END_Y_E = 150;
-    private static final double END_X_W = 320;
-    private static final double END_Y_W = 80;
-
-    private static final double STOP_X_N = 200;
-    private static final double STOP_Y_N = 80;
-    private static final double STOP_X_S = 100;
-    private static final double STOP_Y_S = 80;
-    private static final double STOP_X_E = 500;
-    private static final double STOP_Y_E = 150;
-    private static final double STOP_X_W = 80;
-    private static final double STOP_Y_W = 80;
 
 
     public SimulationController(IntersectionEngine engine, HomeView view) {
@@ -78,26 +62,27 @@ public class SimulationController {
 
             if (event.getType() == Event.EventType.ARRIVAL && event.getPayload() instanceof Arrival) {
                 Arrival arrival = (Arrival) event.getPayload();
+
+
                 Car car = arrival.car;
 
-                // Create car node
                 Circle carShape = new Circle(7, arrival.fromA ? Color.BLUE : Color.RED);
-                double startX = arrival.fromA ? START_X_N* view.getAmountOfIntersections() : START_X_E * view.getAmountOfIntersections();
-                double startY = arrival.fromA ? START_Y_N : START_Y_E;
-                double stopX = arrival.fromA ? (START_X_N+1*(ROAD_LENGTH* view.getAmountOfIntersections())- 780) : (START_X_E+1* (ROAD_LENGTH * view.getAmountOfIntersections())- 780);
-                double stopY = arrival.fromA ? START_Y_N : START_Y_E;
+
+                double startX = arrival.fromA ? START_X_W : START_X_E + (ROAD_LENGTH - (ROAD_LENGTH * (view.getAmountOfIntersections()+1)) );
+                double startY = arrival.fromA ? START_Y_W : START_Y_E;
+                double stopX  = arrival.fromA ? startX + ROAD_LENGTH : startX * view.getAmountOfIntersections() ;
+                double stopY = startY;
+
 
                 carShape.setCenterX(startX);
                 carShape.setCenterY(startY);
                 view.addCarNode(carShape);
                 carNodes.put(car, carShape);
 
-                // Animate to stop position
-                TranslateTransition moveToFirstStop = new TranslateTransition(Duration.millis(500), carShape);
-                moveToFirstStop.setToX(stopX - startX);
-                moveToFirstStop.setToY(stopY - startY);
-                moveToFirstStop.play();
-                car.incrementTimesMoved();
+                TranslateTransition arrivalAnim = new TranslateTransition(Duration.millis(100), carShape);
+                arrivalAnim.setByX(arrival.fromA ? +ROAD_LENGTH : -ROAD_LENGTH);
+
+                enqueue(car, arrivalAnim);
 
             }
 
@@ -105,26 +90,53 @@ public class SimulationController {
             if (event.getType() == Event.EventType.DEPARTURE && event.getPayload() instanceof Departure) {
 
                 Departure departure = (Departure) event.getPayload();
+
                 Car car = departure.car;
 
-                Circle carShape = carNodes.get(car);
-                if (carShape == null) return;
-
-                TranslateTransition step = new TranslateTransition(Duration.millis(500), carShape);
-                step.setByX(-ROAD_LENGTH); // east-to-west example
-                step.play();
-
-                car.incrementTimesMoved();
-                System.out.println("Car step = " + car.getTimesMoved());
-
-                if (car.getTimesMoved() >= STEPS_TO_NEXT_INTERSECTION) {
-                    carNodes.remove(car);
-                    System.out.println("Car reached next intersection!");
+                Circle carNode = carNodes.get(car);
+                if (carNode == null){
+                    return;
                 }
+
+
+
+                TranslateTransition departAnim = new TranslateTransition(Duration.millis(100), carNode);
+                departAnim.setByX(departure.fromA ? +ROAD_LENGTH : -ROAD_LENGTH);
+
+                enqueue(car, departAnim);
             }
+
+
            });
     }
     public IntersectionEngine getEngine() {
         return engine;
     }
+
+
+
+    private void enqueue(Car car, Animation anim) {
+        queues.computeIfAbsent(car, c -> new ArrayDeque<>()).add(anim);
+        if (!animating.contains(car)) {
+            playNext(car);
+        }
+    }
+
+    private void playNext(Car car) {
+        Deque<Animation> q = queues.get(car);
+        if (q == null || q.isEmpty()) {
+            animating.remove(car);
+            return;
+        }
+        animating.add(car);
+        Animation next = q.pollFirst();
+        next.setOnFinished(e -> {
+            // If you need to increment movement count, keep a separate Car registry by ID.
+            playNext(car);
+        });
+        next.play();
+    }
+
+
+
 }

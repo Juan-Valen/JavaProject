@@ -83,6 +83,7 @@ public class StartingView extends Application {
     }
 
     public int getAmountOfIntersections() {
+        recalculateIntersections();
         return amountOfIntersections;
     }
 }
