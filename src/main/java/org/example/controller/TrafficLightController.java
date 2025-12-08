@@ -3,15 +3,19 @@ package org.example.controller;
 
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import org.example.framework.IntersectionEngine;
 import org.example.model.TrafficLight;
 import java.util.List;
 
 public class TrafficLightController {
 
+    IntersectionEngine intersectionEngine;
+
 //    delay after green light changes to yellow
-    private static final int greenDelay = 100;
+    private static int greenDelay;
 //    delay after yellow light changes to red
-    private static final int yellowDelay = 300;
+    private static int yellowDelay;
+
 
     private final TrafficLight north = new TrafficLight("NORTH");
     private final TrafficLight south = new TrafficLight("SOUTH");
@@ -153,5 +157,22 @@ public class TrafficLightController {
                 throw new IllegalArgumentException("Invalid direction: " + direction);
         }
     }
+
+    public int getGreenDelay() {
+        return greenDelay;
+    }
+
+    public void setGreenDelay(int greenDelay) {
+        TrafficLightController.greenDelay = greenDelay;
+    }
+
+    public int getYellowDelay() {
+        return yellowDelay;
+    }
+
+    public void setYellowDelay(int yellowDelay) {
+        TrafficLightController.yellowDelay = yellowDelay;
+    }
+
 
 }

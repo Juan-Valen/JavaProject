@@ -64,7 +64,7 @@ public class HomeView {
         TrafficLightController trafficLightController = new TrafficLightController();
 
         // Initialize traffic lights
-        updateLights(trafficLightController);
+        initLights(trafficLightController);
 
         // Start simulation
         IntersectionEngine intersectionEngine = new IntersectionEngine();
@@ -89,7 +89,10 @@ public class HomeView {
         };
     }
 
-    public void updateLights(TrafficLightController controller) {
+
+
+    public void initLights(TrafficLightController controller) {
+
         if (northLight == null || southLight == null || eastLight == null || westLight == null) {
             System.err.println("Lights not initialized yet; skipping update.");
             return;
