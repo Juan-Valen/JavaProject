@@ -26,52 +26,12 @@ public class HomeView {
     private Circle eastLight;
     private Circle westLight;
     private Pane intersectionPane = new Pane();
+    private StartingView startingView;
 
-    public Scene buildScene() {
-        // Intersection visualization
-        intersectionPane.setPrefSize(400, 400);
-
-        // Draw roads
-        Rectangle verticalRoad = new Rectangle(275, 0, 150, 700);
-        verticalRoad.setFill(Color.LIGHTGRAY);
-        Rectangle horizontalRoad = new Rectangle(0, 275, 700, 150);
-        horizontalRoad.setFill(Color.LIGHTGRAY);
-        Rectangle roadCenter = new Rectangle(275, 275, 150, 150);
-        roadCenter.setFill(Color.LIGHTGRAY);
-
-        // Draw road lines
-        Line verticalRoadLine = new Line(
-                verticalRoad.getX() + verticalRoad.getWidth() / 2,
-                verticalRoad.getY(),
-                verticalRoad.getX() + verticalRoad.getWidth() / 2,
-                verticalRoad.getY() + verticalRoad.getHeight()
-        );
-        verticalRoadLine.setStroke(Color.WHITE);
-        verticalRoadLine.setStrokeWidth(4);
-        verticalRoadLine.getStrokeDashArray().addAll(20.0, 15.0);
-
-        Line horizontalRoadLine = new Line(
-                horizontalRoad.getX() + 8,
-                horizontalRoad.getY() + horizontalRoad.getHeight() / 2,
-                horizontalRoad.getX() + horizontalRoad.getWidth(),
-                horizontalRoad.getY() + horizontalRoad.getHeight() / 2
-        );
-        horizontalRoadLine.setStroke(Color.WHITE);
-        horizontalRoadLine.setStrokeWidth(4);
-        horizontalRoadLine.getStrokeDashArray().addAll(20.0, 15.0);
-
-        // Traffic lights
-        northLight = new Circle(230, 230, 15);
-        southLight = new Circle(460, 460, 15);
-        eastLight  = new Circle(460, 230, 15);
-        westLight  = new Circle(230, 460, 15);
-
-        intersectionPane.getChildren().addAll(
-                verticalRoad, horizontalRoad,
-                verticalRoadLine, horizontalRoadLine, roadCenter,
-                northLight, southLight, eastLight, westLight
-        );
-
+    public Scene buildScene(StartingView startingView) {
+        if(startingView == null){
+            return null;
+        }
         // Control panel
         HBox controls = new HBox(10);
         Button pauseBtn = new Button("Pause");
@@ -90,6 +50,14 @@ public class HomeView {
         root.setBottom(controls);
 
         Scene scene = new Scene(root, 700, 700);
+
+
+        // Check for the amount of intersections
+        for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
+            Pane inter = buildIntersection(i);
+            root.getChildren().add(inter);
+        }
+
 
         // Create Models & Controllers
         Queue queue = new Queue();
@@ -140,4 +108,59 @@ public class HomeView {
     public void addCarNode(Circle carShape) {
         intersectionPane.getChildren().add(carShape);
     }
+    public Pane buildIntersection(int position){
+    Pane interPane = new Pane();
+        // Intersection visualization
+        interPane.setPrefSize(400, 400);
+
+        // Draw roads
+        Rectangle verticalRoad = new Rectangle(140+(140*position*2), 0, 80, 320);
+        verticalRoad.setFill(Color.LIGHTGRAY);
+        Rectangle horizontalRoad = new Rectangle((140*(position*2)), 140, 320, 80);
+        horizontalRoad.setFill(Color.LIGHTGRAY);
+        Rectangle roadCenter = new Rectangle(140+(140*position*2), 140, 80, 80);
+        roadCenter.setFill(Color.LIGHTGRAY);
+
+        // Draw road lines
+        Line verticalRoadLine = new Line(
+                verticalRoad.getX() + verticalRoad.getWidth() / 2,
+                verticalRoad.getY(),
+                verticalRoad.getX() + verticalRoad.getWidth() / 2,
+                verticalRoad.getY() + verticalRoad.getHeight()
+        );
+        verticalRoadLine.setStroke(Color.WHITE);
+        verticalRoadLine.setStrokeWidth(2);
+        verticalRoadLine.getStrokeDashArray().addAll(20.0, 15.0);
+
+        Line horizontalRoadLine = new Line(
+                horizontalRoad.getX() + 8,
+                horizontalRoad.getY() + horizontalRoad.getHeight() / 2,
+                horizontalRoad.getX() + horizontalRoad.getWidth(),
+                horizontalRoad.getY() + horizontalRoad.getHeight() / 2
+        );
+        horizontalRoadLine.setStroke(Color.WHITE);
+        horizontalRoadLine.setStrokeWidth(2);
+        horizontalRoadLine.getStrokeDashArray().addAll(20.0, 15.0);
+
+        // Traffic lights
+        northLight = new Circle(230, 230, 15);
+        southLight = new Circle(460, 460, 15);
+        eastLight  = new Circle(460, 230, 15);
+        westLight  = new Circle(230, 460, 15);
+
+        interPane.getChildren().addAll(
+                verticalRoad, horizontalRoad,
+                verticalRoadLine, horizontalRoadLine, roadCenter,
+                northLight, southLight, eastLight, westLight
+        );
+        return interPane;
+    }
+
+    public double getAmountOfIntersections(){
+        if(startingView == null){
+            return 0;
+        }
+        return startingView.getAmountOfIntersections();
+    }
+
 }
