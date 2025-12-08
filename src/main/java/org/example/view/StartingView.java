@@ -4,16 +4,17 @@ package org.example.view;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import org.example.controller.SimulationController;
 
 //TODO: Explanation: In here user selects the type of intersections, How many cars in max in one group, Median arrival time
 
 
 public class StartingView extends Application {
-
     ComboBox<String> intersection1 = new ComboBox<>();
     ComboBox<String> intersection2 = new ComboBox<>();
     ComboBox<String> intersection3 = new ComboBox<>();
@@ -52,14 +53,28 @@ public class StartingView extends Application {
         carsInMaxPerGroup.setPromptText("Cars in max per group");
         TextField medianArrivalTime = new TextField();
         medianArrivalTime.setPromptText("Median arrival time");
-        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime);
 
+        Button startButton = new Button("Start Simulation");
+        startButton.setOnAction(e -> {
+            HomeView homeView = new HomeView();
+            Scene homeScene = homeView.buildScene();
+            stage.setTitle("Traffic Intersection Control");
+            stage.setScene(homeScene);
+            stage.sizeToScene();
+        });
 
-            Scene scene = new Scene(rootSelection, 1000, 1000);
+        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, startButton);
+
+        Scene scene = new Scene(rootSelection, 1100, 1000);
             stage.setScene(scene);
             stage.setTitle("Intersection Simulator");
             stage.show();
     }
+
+    public void startSimulation(){
+        System.out.println("Start simulation.");
+    }
+
 
     private void handleSelection(ComboBox<String> current, ComboBox<String>... nextIntersections) {
         String value = current.getValue();
@@ -72,6 +87,8 @@ public class StartingView extends Application {
                 next.setValue(null);
             }
         }
+
+
     }
 
 }
