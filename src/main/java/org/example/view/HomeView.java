@@ -55,7 +55,6 @@ public class HomeView {
 
 
         // Create Models & Controllers
-        Queue queue = new Queue();
         TrafficLightController trafficLightController = new TrafficLightController();
 
         // Initialize traffic lights
