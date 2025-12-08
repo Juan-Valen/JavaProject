@@ -28,6 +28,7 @@ public class IntersectionView extends Pane {
         getChildren().addAll(vertical, horizontal, center);
     }
 
+
     private void drawLights() {
         northLight = new Circle(160, 120, 10, Color.RED);
         southLight = new Circle(160, 200, 10, Color.RED);
