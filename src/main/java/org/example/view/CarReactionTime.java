@@ -4,6 +4,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.HBox;
+import org.example.framework.IntersectionEngine;
 
 public class CarReactionTime extends HBox {
 
@@ -20,10 +21,11 @@ public class CarReactionTime extends HBox {
         slider.setMinorTickCount(5);
 
         valueLabel.setText(formatValue(slider.getValue()));
-        slider.valueProperty().addListener((obs, oldV, newV) ->
-                valueLabel.setText(formatValue(newV.doubleValue()))
+        slider.valueProperty().addListener((obs, oldV, newV) -> {
+                    valueLabel.setText(formatValue(newV.doubleValue()));
+                    IntersectionEngine.setDriverReactionTimeDist((int) slider.getValue());
+                }
         );
-
         getChildren().addAll(new Label("Car's reaction time"), slider, valueLabel);
     }
 
