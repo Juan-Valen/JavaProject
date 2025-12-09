@@ -97,7 +97,6 @@ public class HomeView {
         resumeBtn.setOnAction(e -> controller.resumeSimulation());
         addTimeBtn.setOnAction(e -> controller.addTime(timeInput.getText()));
         addCarsBtn.setOnAction(e -> controller.addCars(carInput.getText()));
-
         return view;
     }
 
