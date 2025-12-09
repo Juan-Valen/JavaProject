@@ -4,6 +4,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.HBox;
+import org.example.framework.IntersectionEngine;
 
 public class TimeBetweenIntersection extends HBox {
 
@@ -25,6 +26,8 @@ public class TimeBetweenIntersection extends HBox {
         );
 
         getChildren().addAll(new Label("Time between intersections:"), slider, valueLabel);
+
+        //IntersectionEngine.setTimeToCrossIntersection(getTimeBetween);
     }
 
     private String formatValue(double v) {

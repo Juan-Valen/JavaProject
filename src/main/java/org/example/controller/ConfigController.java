@@ -15,9 +15,6 @@ public class ConfigController {
         if (config == null) {
             config = new Config(getConfigValues());
         }
-        if (config.getConfigValues().isEmpty()) {
-            return null;
-        }
         return config;
     }
 
