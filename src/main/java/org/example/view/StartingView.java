@@ -5,15 +5,19 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.example.controller.ConfigController;
 import org.example.framework.IntersectionEngine;
 import org.example.model.Config;
 import org.example.view.HomeView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class StartingView extends Application {
     ComboBox<String> intersection1 = new ComboBox<>();
@@ -21,6 +25,8 @@ public class StartingView extends Application {
     ComboBox<String> intersection3 = new ComboBox<>();
     ComboBox<String> intersection4 = new ComboBox<>();
     private int amountOfIntersections = 4; // default
+    private TextField carsInMaxPerGroup;
+    private TextField medianArrivalTime;
 
     @Override
     public void start(Stage stage) {
@@ -39,12 +45,13 @@ public class StartingView extends Application {
         intersection3.setItems(options);
         intersection4.setItems(options);
 
-        intersection1.setPromptText("First intersection");
-        intersection2.setPromptText("Second intersection");
-        intersection3.setPromptText("Third intersection");
-        intersection4.setPromptText("Fourth intersection");
+        // option values instead so every intersection has option set for it
+        intersection1.setPromptText(options.get(0));
+        intersection2.setPromptText(options.get(0));
+        intersection3.setPromptText(options.get(0));
+        intersection4.setPromptText(options.get(0));
 
-        HBox rootSelection = new HBox();
+        VBox rootSelection = new VBox();
         rootSelection.setSpacing(10);
         rootSelection.setPadding(new Insets(10));
         rootSelection.getChildren().addAll(intersection1, intersection2, intersection3, intersection4);
@@ -55,9 +62,9 @@ public class StartingView extends Application {
         intersection3.setOnAction(e -> recalculateIntersections());
         intersection4.setOnAction(e -> recalculateIntersections());
 
-        TextField carsInMaxPerGroup = new TextField();
+        carsInMaxPerGroup = new TextField();
         carsInMaxPerGroup.setPromptText("Cars in max per group: " + ((config.getConfigValues().get("carGroupAvgSize") != null) ? config.getConfigValues().get("carGroupAvgSize") : ""));
-        TextField medianArrivalTime = new TextField();
+        medianArrivalTime = new TextField();
 
         medianArrivalTime.setPromptText("Median arrival time (s): " + ((config.getConfigValues().get("betweenIntersectionTime") != null) ? config.getConfigValues().get("betweenIntersectionTime") : ""));
   
@@ -75,10 +82,10 @@ public class StartingView extends Application {
             stage.setScene(homeScene);
             stage.sizeToScene();
         });
+        Label label = new Label("Choose settings for at least one intersection before starting");
+        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, label, startButton);
 
-        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, startButton);
-
-        Scene scene = new Scene(rootSelection, 1100, 1000);
+        Scene scene = new Scene(rootSelection, 400, 500);
         stage.setScene(scene);
         stage.setTitle("Intersection Simulator");
         stage.show();
@@ -100,6 +107,18 @@ public class StartingView extends Application {
         recalculateIntersections();
         return amountOfIntersections;
     }
+    public List<String> getIntersectionModes() {
+        List<String> result = new ArrayList<>();
+        if (!"Don't show intersection".equals(intersection1.getValue()))
+            result.add(intersection1.getValue());
+        if (!"Don't show intersection".equals(intersection2.getValue()))
+            result.add(intersection2.getValue());
+        if (!"Don't show intersection".equals(intersection3.getValue()))
+            result.add(intersection3.getValue());
+        if (!"Don't show intersection".equals(intersection4.getValue()))
+            result.add(intersection4.getValue());
+        return result;
+    }
 
     @Override
     public void stop() {
@@ -117,10 +136,17 @@ public class StartingView extends Application {
 
     // getters for starting view car group and arrival inputs
     public long getCarsInGroup() {
-        return getCarsInGroup();
+        if (carsInMaxPerGroup == null || carsInMaxPerGroup.getText().isEmpty()) {
+            return 0;
+        }
+        return Long.parseLong(carsInMaxPerGroup.getText());
     }
+
     public long getMedianArrivalTime() {
-        return getMedianArrivalTime();
+        if (medianArrivalTime == null || medianArrivalTime.getText().isEmpty()) {
+            return 0;
+        }
+        return Long.parseLong(medianArrivalTime.getText());
     }
 
 }

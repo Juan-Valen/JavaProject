@@ -57,82 +57,73 @@ public class SimulationController {
 
     private void updateView(Event event) {
         Platform.runLater(() -> {
+
             view.initLights(engine.getTrafficLightController());
             view.updateQueues(engine.getIntersectionList().get(0).getQueueStates());
 
+            // Get slider-based timing
+            long reaction = (long) view.getCarReactionTime();     // human reaction time
+            long spacing  = (long) view.getTimeBetweenValue();    // spacing between cars
+            long animTime = reaction + spacing;                   // total movement delay
+
+            // ===== ARRIVAL =====
             if (event.getType() == Event.EventType.ARRIVAL && event.getPayload() instanceof Arrival) {
+
                 Arrival arrival = (Arrival) event.getPayload();
-
-
                 Car car = arrival.car;
 
-                // Create car node
-                Circle carShape = new Circle(7, arrival.fromA ? Color.BLUE : Color.RED);
+                Circle node = new Circle(7, arrival.fromA ? Color.BLUE : Color.RED);
 
-                double startX = arrival.fromA ? START_X_W : START_X_E + (ROAD_LENGTH - (ROAD_LENGTH * (view.getAmountOfIntersections()+1)) );
+                double totalWidth = ROAD_LENGTH * view.getAmountOfIntersections();
+
+                double startX = arrival.fromA
+                        ? START_X_W
+                        : totalWidth + 260;
+
                 double startY = arrival.fromA ? START_Y_W : START_Y_E;
-                double stopX  = arrival.fromA ? startX + ROAD_LENGTH : startX * view.getAmountOfIntersections() ;
-                double stopY = startY;
 
+                node.setCenterX(startX);
+                node.setCenterY(startY);
 
-                carShape.setCenterX(startX);
-                carShape.setCenterY(startY);
-                view.addCarNode(carShape);
-                carNodes.put(car, carShape);
+                view.addCarNode(node);
+                carNodes.put(car, node);
 
-                // Animate to stop position
-                double sliderValueBetween = view.getTimeBetweenValue();
-                long parsedSliderVal = (long) sliderValueBetween;
-                double sliderValueReaction = view.getCarReactionTime();
-                long parsedSliderValReaction = (long) sliderValueReaction;
-
-                long totalSliderTime = parsedSliderValReaction + parsedSliderVal;
-
-                TranslateTransition arrivalAnim = new TranslateTransition(Duration.millis(100), carShape);
+                // ARRIVAL movement = 1 intersection
+                TranslateTransition arrivalAnim = new TranslateTransition(Duration.millis(animTime), node);
                 arrivalAnim.setByX(arrival.fromA ? +ROAD_LENGTH : -ROAD_LENGTH);
 
                 enqueue(car, arrivalAnim);
+            }
 
-
+            // ===== DEPARTURE =====
             if (event.getType() == Event.EventType.DEPARTURE && event.getPayload() instanceof Departure) {
 
                 Departure departure = (Departure) event.getPayload();
                 Car car = departure.car;
 
-                Circle carNode = carNodes.get(car);
-                if (carNode == null){
-                    return;
-                }
+                Circle node = carNodes.get(car);
+                if (node == null) return;
 
-
-                double startX = carShape.getCenterX() + carShape.getTranslateX();
-                double startY = carShape.getCenterY() + carShape.getTranslateY();
-
-
-                double endX = startX - ROAD_LENGTH;
-                double endY = startY;
-
-
-                TranslateTransition step = new TranslateTransition(Duration.millis(500), carShape);
-                step.setByX(-ROAD_LENGTH);
-                step.play();
-
-                car.incrementTimesMoved();
-                System.out.println("Car step = " + car.getTimesMoved());
-
-
-
-                TranslateTransition departAnim = new TranslateTransition(Duration.millis(100), carNode);
+                // DEPARTURE movement = 1 intersection
+                TranslateTransition departAnim = new TranslateTransition(Duration.millis(animTime), node);
                 departAnim.setByX(departure.fromA ? +ROAD_LENGTH : -ROAD_LENGTH);
 
                 enqueue(car, departAnim);
 
-        };}});
+                car.incrementTimesMoved();
+
+                if (car.getTimesMoved() >= view.getAmountOfIntersections()) {
+                    carNodes.remove(car);
+                    System.out.println("Car left simulation");
+                }
+            }
+        });
     }
+
+
     public IntersectionEngine getEngine() {
         return engine;
     }
-
 
 
     private void enqueue(Car car, Animation anim) {
