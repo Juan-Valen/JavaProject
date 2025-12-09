@@ -31,6 +31,7 @@ public class HomeView {
     private Pane intersectionPane = new Pane();
     private StartingView startingView;
 
+
     public Scene buildScene(StartingView startingView) {
         if(startingView == null){
             return null;
@@ -45,14 +46,25 @@ public class HomeView {
         TextField carInput = new TextField();
         carInput.setPromptText("Add cars (amount)");
         Button addCarsBtn = new Button("Add Car");
-        controls.getChildren().addAll(pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn);
+
+        // sliders
+        timeToNext = new TimeBetweenIntersection();
+        carReactionTime = new CarReactionTime();
+
+        controls.getChildren().addAll(
+                pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn, timeToNext, carReactionTime
+        );
+
 
         // Layout
         BorderPane root = new BorderPane();
         root.setCenter(intersectionPane);
         root.setBottom(controls);
 
-        Scene scene = new Scene(root, 700, 700);
+        Scene view = new Scene(root, 1500, 700);
+        window.setTitle("Traffic Intersection Control");
+        window.setScene(view);
+        window.show();
 
 
         // Check for the amount of intersections
@@ -179,6 +191,15 @@ public class HomeView {
             return 0;
         }
         return startingView.getAmountOfIntersections();
+    }
+      
+          // getter: slider values (double)
+    public double getTimeBetweenValue() {
+        return timeToNext.getTimeBetween();
+    }
+
+    public double getCarReactionTime() {
+        return carReactionTime.getReactionTime();
     }
 
 }

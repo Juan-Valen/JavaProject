@@ -92,12 +92,17 @@ public class SimulationController {
                 carNodes.put(car, carShape);
 
                 // Animate to stop position
-                TranslateTransition moveToFirstStop = new TranslateTransition(Duration.millis(500), carShape);
-                moveToFirstStop.setToX(stopX - startX);
-                moveToFirstStop.setToY(stopY - startY);
-                moveToFirstStop.play();
-                car.incrementTimesMoved();
+                double sliderValueBetween = view.getTimeBetweenValue();
+                long parsedSliderVal = (long) sliderValueBetween;
+                double sliderValueReaction = view.getCarReactionTime();
+                long parsedSliderValReaction = (long) sliderValueReaction;
 
+                long totalSlderTime = parsedSliderValReaction + parsedSliderVal;
+
+                TranslateTransition moveToStop = new TranslateTransition(Duration.millis(totalSlderTime), carShape);
+                moveToStop.setToX(stopX - startX);
+                moveToStop.setToY(stopY - startY);
+                moveToStop.play();
             }
 
 
@@ -116,12 +121,18 @@ public class SimulationController {
                 car.incrementTimesMoved();
                 System.out.println("Car step = " + car.getTimesMoved());
 
-                if (car.getTimesMoved() >= STEPS_TO_NEXT_INTERSECTION) {
-                    carNodes.remove(car);
-                    System.out.println("Car reached next intersection!");
-                }
-            }
-           });
+            double sliderValueBetween = view.getTimeBetweenValue();
+            long parsedSliderVal = (long) sliderValueBetween;
+            double sliderValueReaction = view.getCarReactionTime();
+            long parsedSliderValReaction = (long) sliderValueReaction;
+
+            long totalSlderTime = parsedSliderValReaction + parsedSliderVal;
+
+            TranslateTransition move = new TranslateTransition(Duration.millis(totalSlderTime), carShape);
+            move.setToX(endX - startX);
+            move.setToY(endY - startY);
+            move.play();
+        }
     }
     public IntersectionEngine getEngine() {
         return engine;

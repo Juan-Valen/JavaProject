@@ -51,7 +51,14 @@ public class StartingView extends Application {
         TextField carsInMaxPerGroup = new TextField();
         carsInMaxPerGroup.setPromptText("Cars in max per group");
         TextField medianArrivalTime = new TextField();
+
         medianArrivalTime.setPromptText("Median arrival time in seconds");
+  
+        TextField timeBetweenIntersection = new TextField();
+        timeBetweenIntersection.setPromptText("Time between intersections for a car");
+
+        TextField carReactionTime = new TextField();
+        carReactionTime.setPromptText("Car's reaction time");
 
         Button startButton = new Button("Start Simulation");
         startButton.setOnAction(e -> {
@@ -62,7 +69,7 @@ public class StartingView extends Application {
             stage.sizeToScene();
         });
 
-        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, startButton);
+        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, timeBetweenIntersection, carReactionTime, startButton);
 
         Scene scene = new Scene(rootSelection, 1100, 1000);
         stage.setScene(scene);
