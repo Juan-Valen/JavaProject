@@ -6,6 +6,7 @@ public class Event implements Comparable<Event> {
         DEPARTURE,
         EXIT,
         LIGHT_CHANGE,
+        QUEUE_ARRIVALS,
     }
 
     private EventType type;
