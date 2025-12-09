@@ -90,7 +90,14 @@ public class SimulationController {
                 carNodes.put(car, carShape);
 
                 // Animate to stop position
-                TranslateTransition moveToStop = new TranslateTransition(Duration.millis(1000), carShape);
+                double sliderValueBetween = view.getTimeBetweenValue();
+                long parsedSliderVal = (long) sliderValueBetween;
+                double sliderValueReaction = view.getCarReactionTime();
+                long parsedSliderValReaction = (long) sliderValueReaction;
+
+                long totalSlderTime = parsedSliderValReaction + parsedSliderVal;
+
+                TranslateTransition moveToStop = new TranslateTransition(Duration.millis(totalSlderTime), carShape);
                 moveToStop.setToX(stopX - startX);
                 moveToStop.setToY(stopY - startY);
                 moveToStop.play();
@@ -122,7 +129,14 @@ public class SimulationController {
             carShape.setCenterY(startY);
             view.addCarNode(carShape);
 
-            TranslateTransition move = new TranslateTransition(Duration.millis(1000), carShape);
+            double sliderValueBetween = view.getTimeBetweenValue();
+            long parsedSliderVal = (long) sliderValueBetween;
+            double sliderValueReaction = view.getCarReactionTime();
+            long parsedSliderValReaction = (long) sliderValueReaction;
+
+            long totalSlderTime = parsedSliderValReaction + parsedSliderVal;
+
+            TranslateTransition move = new TranslateTransition(Duration.millis(totalSlderTime), carShape);
             move.setToX(endX - startX);
             move.setToY(endY - startY);
             move.play();

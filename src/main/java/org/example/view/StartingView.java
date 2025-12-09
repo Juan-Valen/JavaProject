@@ -52,10 +52,19 @@ public class StartingView extends Application {
         carsInMaxPerGroup.setPromptText("Cars in max per group");
         TextField medianArrivalTime = new TextField();
         medianArrivalTime.setPromptText("Median arrival time");
-        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime);
+
+        TextField timeBetweenIntersection = new TextField();
+        timeBetweenIntersection.setPromptText("Time between intersections for a car");
+
+        TextField carReactionTime = new TextField();
+        carReactionTime.setPromptText("Car's reaction time");
+
+        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, timeBetweenIntersection, carReactionTime);
+
+        // reaktioaika, kuinka pitkään autolla kestää kun valo vaihtunut vihreeksi tai toinen auto mennyt ohi
 
 
-            Scene scene = new Scene(rootSelection, 1000, 1000);
+            Scene scene = new Scene(rootSelection, 1100, 100);
             stage.setScene(scene);
             stage.setTitle("Intersection Simulator");
             stage.show();

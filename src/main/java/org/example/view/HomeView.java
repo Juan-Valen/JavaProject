@@ -30,6 +30,10 @@ public class HomeView extends Application {
     private Pane intersectionPane = new Pane();
 
 
+    private TimeBetweenIntersection timeToNext;
+    private CarReactionTime carReactionTime;
+
+
     @Override
     public void start(Stage window) {
         // Intersection visualization
@@ -89,14 +93,22 @@ public class HomeView extends Application {
         TextField carInput = new TextField();
         carInput.setPromptText("Add cars (amount)");
         Button addCarsBtn = new Button("Add Car");
-        controls.getChildren().addAll(pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn);
+
+        // sliders
+        timeToNext = new TimeBetweenIntersection();
+        carReactionTime = new CarReactionTime();
+
+        controls.getChildren().addAll(
+                pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn, timeToNext, carReactionTime
+        );
+
 
         // Layout
         BorderPane root = new BorderPane();
         root.setCenter(intersectionPane);
         root.setBottom(controls);
 
-        Scene view = new Scene(root, 700, 700);
+        Scene view = new Scene(root, 1500, 700);
         window.setTitle("Traffic Intersection Control");
         window.setScene(view);
         window.show();
@@ -158,6 +170,16 @@ public class HomeView extends Application {
 
     public void addCarNode(Circle carShape) {
         intersectionPane.getChildren().add(carShape);
+    }
+
+
+    // getter: slider values (double)
+    public double getTimeBetweenValue() {
+        return timeToNext.getTimeBetween();
+    }
+
+    public double getCarReactionTime() {
+        return carReactionTime.getReactionTime();
     }
 
 }
