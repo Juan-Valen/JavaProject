@@ -69,7 +69,7 @@ public class StartingView extends Application {
             stage.sizeToScene();
         });
 
-        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, timeBetweenIntersection, carReactionTime, startButton);
+        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, startButton);
 
         Scene scene = new Scene(rootSelection, 1100, 1000);
         stage.setScene(scene);

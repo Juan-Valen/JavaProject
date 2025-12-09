@@ -114,25 +114,35 @@ public class SimulationController {
                 Circle carShape = carNodes.get(car);
                 if (carShape == null) return;
 
+
+                double startX = carShape.getCenterX() + carShape.getTranslateX();
+                double startY = carShape.getCenterY() + carShape.getTranslateY();
+
+
+                double endX = startX - ROAD_LENGTH;
+                double endY = startY;
+
+
                 TranslateTransition step = new TranslateTransition(Duration.millis(500), carShape);
-                step.setByX(-ROAD_LENGTH); // east-to-west example
+                step.setByX(-ROAD_LENGTH);
                 step.play();
 
                 car.incrementTimesMoved();
                 System.out.println("Car step = " + car.getTimesMoved());
 
-            double sliderValueBetween = view.getTimeBetweenValue();
-            long parsedSliderVal = (long) sliderValueBetween;
-            double sliderValueReaction = view.getCarReactionTime();
-            long parsedSliderValReaction = (long) sliderValueReaction;
+                // Slider
+                double sliderValueBetween = view.getTimeBetweenValue();
+                long parsedSliderVal = (long) sliderValueBetween;
+                double sliderValueReaction = view.getCarReactionTime();
+                long parsedSliderValReaction = (long) sliderValueReaction;
+                long totalSliderTime = parsedSliderValReaction + parsedSliderVal;
 
-            long totalSlderTime = parsedSliderValReaction + parsedSliderVal;
-
-            TranslateTransition move = new TranslateTransition(Duration.millis(totalSlderTime), carShape);
-            move.setToX(endX - startX);
-            move.setToY(endY - startY);
-            move.play();
-        }
+                TranslateTransition move = new TranslateTransition(Duration.millis(totalSliderTime), carShape);
+                move.setToX(endX - carShape.getCenterX());
+                move.setToY(endY - carShape.getCenterY());
+                move.play();
+            }
+        });
     }
     public IntersectionEngine getEngine() {
         return engine;
