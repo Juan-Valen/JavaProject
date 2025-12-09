@@ -31,6 +31,8 @@ public class HomeView {
     private Pane intersectionPane = new Pane();
     private StartingView startingView;
 
+    private TimeBetweenIntersection timeToNext;
+    private CarReactionTime carReactionTime;
 
     public Scene buildScene(StartingView startingView) {
         if(startingView == null){
@@ -55,36 +57,28 @@ public class HomeView {
                 pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn, timeToNext, carReactionTime
         );
 
-
         // Layout
         BorderPane root = new BorderPane();
         root.setCenter(intersectionPane);
         root.setBottom(controls);
 
         Scene view = new Scene(root, 1500, 700);
-        window.setTitle("Traffic Intersection Control");
-        window.setScene(view);
-        window.show();
 
 
-        // Check for the amount of intersections
+        // Draw intersections
         for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
             Pane inter = buildIntersection(i);
             root.getChildren().add(inter);
         }
 
-
         // Create Models & Controllers
         TrafficLightController trafficLightController = new TrafficLightController();
 
-        // Initialize traffic lights
         initLights(trafficLightController);
 
-        // Start simulation
         IntersectionEngine intersectionEngine = new IntersectionEngine(trafficLightController);
         SimulationController simulationController = new SimulationController(intersectionEngine, this);
 
-        // Temp intersection setup
         List<String> fauxIntersections = new ArrayList<>();
         for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
             if (Math.random() < 0.5) {
@@ -98,14 +92,13 @@ public class HomeView {
 
         simulationController.startSimulation();
 
-        // Controller
         HomeController controller = new HomeController(this, simulationController);
         pauseBtn.setOnAction(e -> controller.pauseSimulation());
         resumeBtn.setOnAction(e -> controller.resumeSimulation());
         addTimeBtn.setOnAction(e -> controller.addTime(timeInput.getText()));
         addCarsBtn.setOnAction(e -> controller.addCars(carInput.getText()));
 
-        return scene;
+        return view;
     }
 
     private static Color toColor(TrafficLight.State s) {
