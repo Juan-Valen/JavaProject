@@ -31,6 +31,9 @@ public class HomeView {
     private Pane intersectionPane = new Pane();
     private StartingView startingView;
 
+    private TimeBetweenIntersection timeToNext;
+    private CarReactionTime carReactionTime;
+
     public Scene buildScene(StartingView startingView) {
         if(startingView == null){
             return null;
@@ -45,34 +48,37 @@ public class HomeView {
         TextField carInput = new TextField();
         carInput.setPromptText("Add cars (amount)");
         Button addCarsBtn = new Button("Add Car");
-        controls.getChildren().addAll(pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn);
+
+        // sliders
+        timeToNext = new TimeBetweenIntersection();
+        carReactionTime = new CarReactionTime();
+
+        controls.getChildren().addAll(
+                pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn, timeToNext, carReactionTime
+        );
 
         // Layout
         BorderPane root = new BorderPane();
         root.setCenter(intersectionPane);
         root.setBottom(controls);
 
-        Scene scene = new Scene(root, 700, 700);
+        Scene view = new Scene(root, 1500, 700);
 
 
-        // Check for the amount of intersections
+        // Draw intersections
         for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
             Pane inter = buildIntersection(i);
             root.getChildren().add(inter);
         }
 
-
         // Create Models & Controllers
         TrafficLightController trafficLightController = new TrafficLightController();
 
-        // Initialize traffic lights
         initLights(trafficLightController);
 
-        // Start simulation
         IntersectionEngine intersectionEngine = new IntersectionEngine(trafficLightController);
         SimulationController simulationController = new SimulationController(intersectionEngine, this);
 
-        // Temp intersection setup
         List<String> fauxIntersections = new ArrayList<>();
         for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
             if (Math.random() < 0.5) {
@@ -86,14 +92,12 @@ public class HomeView {
 
         simulationController.startSimulation();
 
-        // Controller
         HomeController controller = new HomeController(this, simulationController);
         pauseBtn.setOnAction(e -> controller.pauseSimulation());
         resumeBtn.setOnAction(e -> controller.resumeSimulation());
         addTimeBtn.setOnAction(e -> controller.addTime(timeInput.getText()));
         addCarsBtn.setOnAction(e -> controller.addCars(carInput.getText()));
-
-        return scene;
+        return view;
     }
 
     private static Color toColor(TrafficLight.State s) {
@@ -179,6 +183,15 @@ public class HomeView {
             return 0;
         }
         return startingView.getAmountOfIntersections();
+    }
+      
+          // getter: slider values (double)
+    public double getTimeBetweenValue() {
+        return timeToNext.getTimeBetween();
+    }
+
+    public double getCarReactionTime() {
+        return carReactionTime.getReactionTime();
     }
 
 }

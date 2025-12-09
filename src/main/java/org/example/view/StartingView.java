@@ -8,7 +8,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import org.example.controller.ConfigController;
+import org.example.framework.IntersectionEngine;
+import org.example.model.Config;
 import org.example.view.HomeView;
+
+import java.util.HashMap;
 
 public class StartingView extends Application {
     ComboBox<String> intersection1 = new ComboBox<>();
@@ -19,6 +24,8 @@ public class StartingView extends Application {
 
     @Override
     public void start(Stage stage) {
+
+        Config config = ConfigController.getConfig();
 
         var options = javafx.collections.FXCollections.observableArrayList(
                 "Has traffic lights",
@@ -49,9 +56,16 @@ public class StartingView extends Application {
         intersection4.setOnAction(e -> recalculateIntersections());
 
         TextField carsInMaxPerGroup = new TextField();
-        carsInMaxPerGroup.setPromptText("Cars in max per group");
+        carsInMaxPerGroup.setPromptText("Cars in max per group: " + ((config.getConfigValues().get("carGroupAvgSize") != null) ? config.getConfigValues().get("carGroupAvgSize") : ""));
         TextField medianArrivalTime = new TextField();
-        medianArrivalTime.setPromptText("Median arrival time in seconds");
+
+        medianArrivalTime.setPromptText("Median arrival time (s): " + ((config.getConfigValues().get("betweenIntersectionTime") != null) ? config.getConfigValues().get("betweenIntersectionTime") : ""));
+  
+        TextField timeBetweenIntersection = new TextField();
+        timeBetweenIntersection.setPromptText("Time between intersections for a car");
+
+        TextField carReactionTime = new TextField();
+        carReactionTime.setPromptText("Car's reaction time");
 
         Button startButton = new Button("Start Simulation");
         startButton.setOnAction(e -> {
@@ -86,4 +100,28 @@ public class StartingView extends Application {
         recalculateIntersections();
         return amountOfIntersections;
     }
+
+    @Override
+    public void stop() {
+        HashMap<String, Long> configValues = new HashMap<>();
+        // add any config values you want to save here
+        long carsInGroup = getCarsInGroup();
+        long medianArrivalTime = getMedianArrivalTime();
+        configValues.put("carGroup", carsInGroup);
+        System.out.println("carGroup");
+        configValues.put("ArrivalTime", medianArrivalTime);
+
+        ConfigController.setConfigValues(configValues);
+    }
+
+
+    // getters for starting view car group and arrival inputs
+    public long getCarsInGroup() {
+        return getCarsInGroup();
+    }
+    public long getMedianArrivalTime() {
+        return getMedianArrivalTime();
+    }
+
 }
+

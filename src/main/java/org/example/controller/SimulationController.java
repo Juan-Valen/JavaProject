@@ -66,6 +66,7 @@ public class SimulationController {
 
                 Car car = arrival.car;
 
+                // Create car node
                 Circle carShape = new Circle(7, arrival.fromA ? Color.BLUE : Color.RED);
 
                 double startX = arrival.fromA ? START_X_W : START_X_E + (ROAD_LENGTH - (ROAD_LENGTH * (view.getAmountOfIntersections()+1)) );
@@ -79,18 +80,23 @@ public class SimulationController {
                 view.addCarNode(carShape);
                 carNodes.put(car, carShape);
 
+                // Animate to stop position
+                double sliderValueBetween = view.getTimeBetweenValue();
+                long parsedSliderVal = (long) sliderValueBetween;
+                double sliderValueReaction = view.getCarReactionTime();
+                long parsedSliderValReaction = (long) sliderValueReaction;
+
+                long totalSliderTime = parsedSliderValReaction + parsedSliderVal;
+
                 TranslateTransition arrivalAnim = new TranslateTransition(Duration.millis(100), carShape);
                 arrivalAnim.setByX(arrival.fromA ? +ROAD_LENGTH : -ROAD_LENGTH);
 
                 enqueue(car, arrivalAnim);
 
-            }
-
 
             if (event.getType() == Event.EventType.DEPARTURE && event.getPayload() instanceof Departure) {
 
                 Departure departure = (Departure) event.getPayload();
-
                 Car car = departure.car;
 
                 Circle carNode = carNodes.get(car);
@@ -99,15 +105,29 @@ public class SimulationController {
                 }
 
 
+                double startX = carShape.getCenterX() + carShape.getTranslateX();
+                double startY = carShape.getCenterY() + carShape.getTranslateY();
+
+
+                double endX = startX - ROAD_LENGTH;
+                double endY = startY;
+
+
+                TranslateTransition step = new TranslateTransition(Duration.millis(500), carShape);
+                step.setByX(-ROAD_LENGTH);
+                step.play();
+
+                car.incrementTimesMoved();
+                System.out.println("Car step = " + car.getTimesMoved());
+
+
 
                 TranslateTransition departAnim = new TranslateTransition(Duration.millis(100), carNode);
                 departAnim.setByX(departure.fromA ? +ROAD_LENGTH : -ROAD_LENGTH);
 
                 enqueue(car, departAnim);
-            }
 
-
-           });
+        };}});
     }
     public IntersectionEngine getEngine() {
         return engine;
