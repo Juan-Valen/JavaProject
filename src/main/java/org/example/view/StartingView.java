@@ -8,7 +8,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import org.example.controller.ConfigController;
+import org.example.framework.IntersectionEngine;
+import org.example.model.Config;
 import org.example.view.HomeView;
+
+import java.util.HashMap;
 
 public class StartingView extends Application {
     ComboBox<String> intersection1 = new ComboBox<>();
@@ -19,6 +24,8 @@ public class StartingView extends Application {
 
     @Override
     public void start(Stage stage) {
+
+        Config config = ConfigController.getConfig();
 
         var options = javafx.collections.FXCollections.observableArrayList(
                 "Has traffic lights",
@@ -85,4 +92,12 @@ public class StartingView extends Application {
     public int getAmountOfIntersections() {
         return amountOfIntersections;
     }
+
+    @Override
+    public void stop() {
+        HashMap<String, Long> configValues = new HashMap<>();
+        // add any config values you want to save here
+        ConfigController.setConfigValues(configValues);
+    }
 }
+
