@@ -102,8 +102,12 @@ public class StartingView extends Application {
 
         rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, startButton);
 
-        Scene scene = new Scene(rootSelection, 1100, 1000);
+//        Scene scene = new Scene(rootSelection, 1100, 1000);
+        Scene scene = new Scene(rootSelection);
         stage.setScene(scene);
+
+        stage.sizeToScene();
+
         stage.setTitle("Intersection Simulator");
         stage.show();
 

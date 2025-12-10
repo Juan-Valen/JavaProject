@@ -4,6 +4,7 @@ package org.example.view;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -45,6 +46,7 @@ public class HomeView {
         openedFromStartingView = true;
 
         // Control panel
+
         HBox controls = new HBox(10);
         Button pauseBtn = new Button("Pause");
         Button resumeBtn = new Button("Resume");
@@ -60,16 +62,25 @@ public class HomeView {
         carReactionTime = new CarReactionTime();
         simSpeed = new SimSpeed();
 
+        controls.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(controls, Priority.ALWAYS);
 
         controls.getChildren().addAll(
                 pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn, timeToNext, carReactionTime, simSpeed
         );
 
+        ScrollPane controlScroll = new ScrollPane(controls);
+        controlScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        controlScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        controlScroll.setFitToHeight(true);      // fill the bottom area vertically
+        controlScroll.setPannable(true);         // allow click-drag scrolling
+        controlScroll.setPrefHeight(100);        // adjust as needed for control height
+
+
         // Layout
         BorderPane root = new BorderPane();
         root.setCenter(intersectionPane);
-        root.setBottom(controls);
-
+        root.setBottom(controlScroll);
         Scene view = new Scene(root, 1500, 700);
 
 

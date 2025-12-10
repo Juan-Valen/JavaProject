@@ -115,7 +115,7 @@ public class IntersectionEngine extends Engine{
         //set initial traffic light states
         trafficLightController.setNSGreen();
 
-        setSimulationTime(1000);
+        setSimulationTime(1200);
     }
 
     @Override
