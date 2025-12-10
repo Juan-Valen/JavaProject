@@ -1,6 +1,7 @@
 
 package org.example.view;
 
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -9,6 +10,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import org.example.controller.ConfigController;
 import org.example.controller.HomeController;
 import org.example.controller.SimulationController;
 import org.example.controller.TrafficLightController;
@@ -16,12 +18,10 @@ import org.example.framework.IntersectionEngine;
 import org.example.model.TrafficLight;
 import org.example.model.TrafficLightIntersection;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class HomeView {
+
 
     // Traffic lights
     private Circle northLight;
@@ -34,10 +34,15 @@ public class HomeView {
     private TimeBetweenIntersection timeToNext;
     private CarReactionTime carReactionTime;
 
+    private boolean openedFromStartingView = false;
+
     public Scene buildScene(StartingView startingView) {
         if(startingView == null){
             return null;
         }
+
+        openedFromStartingView = true;
+
         // Control panel
         HBox controls = new HBox(10);
         Button pauseBtn = new Button("Pause");
@@ -192,6 +197,10 @@ public class HomeView {
 
     public double getCarReactionTime() {
         return carReactionTime.getReactionTime();
+    }
+
+    public boolean getOpenedFromStartingView(){
+        return openedFromStartingView;
     }
 
 }
