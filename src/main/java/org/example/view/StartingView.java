@@ -14,7 +14,9 @@ import org.example.framework.IntersectionEngine;
 import org.example.model.Config;
 import org.example.view.HomeView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class StartingView extends Application {
     ComboBox<String> intersection1 = new ComboBox<>();
@@ -76,7 +78,7 @@ public class StartingView extends Application {
 
         Button startButton = new Button("Start Simulation");
         startButton.setOnAction(e -> {
-            Scene homeScene = homeView.buildScene(this); // pass StartingView
+            Scene homeScene = homeView.buildScene(this, getIntersections()); // pass StartingView
 
             // set saved values from starting view to home view sliders
             if (config.getConfigValues().get("betweenIntersectionTime") != null) {
@@ -126,6 +128,36 @@ public class StartingView extends Application {
 
     public int getAmountOfIntersections() {
         return amountOfIntersections;
+    }
+
+    public List<String> getIntersections() {
+        List<String> intersectionList = new ArrayList<>();
+        switch (intersection1.getValue()) {
+            case "Has traffic lights" -> intersectionList.add("Traffic Light Intersection");
+            case "Doesn't have traffic lights" -> intersectionList.add("Bare Intersection");
+        }
+
+        if (!"Don't show intersection".equals(intersection2.getValue()) && intersection2.getValue() != null) {
+            switch (intersection2.getValue()) {
+                case "Has traffic lights" -> intersectionList.add("Traffic Light Intersection");
+                case "Doesn't have traffic lights" -> intersectionList.add("Bare Intersection");
+            }
+        }
+
+        if (!"Don't show intersection".equals(intersection3.getValue()) && intersection3.getValue() != null) {
+            switch (intersection3.getValue()) {
+                case "Has traffic lights" -> intersectionList.add("Traffic Light Intersection");
+                case "Doesn't have traffic lights" -> intersectionList.add("Bare Intersection");
+            }
+        }
+
+        if (!"Don't show intersection".equals(intersection4.getValue()) && intersection4.getValue() != null) {
+            switch (intersection4.getValue()) {
+                case "Has traffic lights" -> intersectionList.add("Traffic Light Intersection");
+                case "Doesn't have traffic lights" -> intersectionList.add("Bare Intersection");
+            }
+        }
+        return intersectionList;
     }
 
     @Override

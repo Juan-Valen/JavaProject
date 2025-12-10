@@ -34,6 +34,8 @@ public class IntersectionEngine extends Engine{
     // Traffic light controller shared by intersections
     private TrafficLightController trafficLightController;
 
+    List<String> intersectionTypeList = new ArrayList<>();
+
     public IntersectionEngine(TrafficLightController trafficLightController) {
         this.trafficLightController = trafficLightController;
     }
@@ -71,7 +73,7 @@ public class IntersectionEngine extends Engine{
         passThroughTimes.add(time);
     }
 
-    private double simulationSpeed = 1; // How many seconds to sleep between events
+    private static double simulationSpeed = 1; // How many seconds to sleep between events
 
     private static int timeToCrossIntersection = 10; // time to cross intersection once started
 
@@ -258,10 +260,6 @@ public class IntersectionEngine extends Engine{
         for (int i = tempIntersectionList.size() -1; i >= 0; i--) {
             intersectionList.add(tempIntersectionList.get(i));
         }
-
-        for (Intersection i : intersectionList) {
-            System.out.println("Added to intersection list: " + i.getName() + " of type " + i.getClass().getName());
-        }
     }
 
 
@@ -332,6 +330,17 @@ public class IntersectionEngine extends Engine{
 
     public static void setCarArrivalIntervalDist(int avgArrivalInterval) {
     	carArrivalIntervalDist = new Normal((double) avgArrivalInterval, (double) avgArrivalInterval);
+    }
+
+    public static void setSimulationSpeed(double simulationSpeed) {
+        if (simulationSpeed <= 0) {
+            throw new IllegalArgumentException("simulationSpeed must be > 0");
+        }
+        IntersectionEngine.simulationSpeed = simulationSpeed;
+    }
+
+    public synchronized double getSimulationSpeed() {
+        return simulationSpeed;
     }
 
 
