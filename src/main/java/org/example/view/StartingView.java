@@ -28,6 +28,8 @@ public class StartingView extends Application {
     private TextField carsInMaxPerGroup;
     private TextField medianArrivalTime;
 
+    HomeView homeView = new HomeView();
+
     @Override
     public void start(Stage stage) {
 
@@ -66,7 +68,11 @@ public class StartingView extends Application {
         carsInMaxPerGroup.setPromptText("Cars in max per group: " + ((config.getConfigValues().get("carGroupAvgSize") != null) ? config.getConfigValues().get("carGroupAvgSize") : ""));
         medianArrivalTime = new TextField();
 
-        medianArrivalTime.setPromptText("Median arrival time (s): " + ((config.getConfigValues().get("betweenIntersectionTime") != null) ? config.getConfigValues().get("betweenIntersectionTime") : ""));
+        carsInMaxPerGroup.setPromptText("Cars in max per group: ");
+        carsInMaxPerGroup.setText(String.valueOf((config.getConfigValues().get("carGroupAvgSize") != null) ? config.getConfigValues().get("carGroupAvgSize") : ""));
+
+        medianArrivalTime.setPromptText("Median arrival time (s): ");
+        medianArrivalTime.setText(String.valueOf((config.getConfigValues().get("avgCarArrivalInterval") != null) ? config.getConfigValues().get("avgCarArrivalInterval") : ""));
   
         TextField timeBetweenIntersection = new TextField();
         timeBetweenIntersection.setPromptText("Time between intersections for a car");
@@ -78,9 +84,25 @@ public class StartingView extends Application {
         startButton.setOnAction(e -> {
             HomeView homeView = new HomeView();
             Scene homeScene = homeView.buildScene(this); // pass StartingView
+
+            // set saved values from starting view to home view sliders
+            if (config.getConfigValues().get("betweenIntersectionTime") != null) {
+                TimeBetweenIntersection.setTimeSeconds(config.getConfigValues().get("betweenIntersectionTime"));
+            }
+            if (config.getConfigValues().get("carReactionTime") != null) {
+                CarReactionTime.setReactionTime(config.getConfigValues().get("carReactionTime"));
+            }
+
             stage.setTitle("Traffic Intersection Control");
             stage.setScene(homeScene);
             stage.sizeToScene();
+
+
+
+            // set intersection engine parameters
+            IntersectionEngine.setCarArrivalIntervalDist(Integer.parseInt(medianArrivalTime.getText()));
+
+            IntersectionEngine.setCarGroupSizeDist(Integer.parseInt(carsInMaxPerGroup.getText()));
         });
         Label label = new Label("Choose settings for at least one intersection before starting");
         rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, label, startButton);
@@ -89,6 +111,12 @@ public class StartingView extends Application {
         stage.setScene(scene);
         stage.setTitle("Intersection Simulator");
         stage.show();
+
+        // Ensure complete application exit on window close
+        Platform.setImplicitExit(true);
+        stage.setOnCloseRequest(event -> {;
+            Platform.exit();
+        });
     }
 
     /** Recalculate number of intersections based on current selections */
@@ -122,15 +150,27 @@ public class StartingView extends Application {
 
     @Override
     public void stop() {
+        System.out.println("Application is stopping, saving configuration...");
         HashMap<String, Long> configValues = new HashMap<>();
         // add any config values you want to save here
-        long carsInGroup = getCarsInGroup();
-        long medianArrivalTime = getMedianArrivalTime();
-        configValues.put("carGroup", carsInGroup);
-        System.out.println("carGroup");
-        configValues.put("ArrivalTime", medianArrivalTime);
+        if (!carsInMaxPerGroup.getText().isEmpty() && !medianArrivalTime.getText().isEmpty()) {
+            long carsInGroup = Long.parseLong(carsInMaxPerGroup.getText());
+            long medianArrivalTimeVal = Long.parseLong(medianArrivalTime.getText());
+            configValues.put("carGroupAvgSize", carsInGroup);
+            configValues.put("avgCarArrivalInterval", medianArrivalTimeVal);
+        }
+
+        if (homeView.getOpenedFromStartingView()) {
+            System.out.println("Saving time between intersections: " + Math.round(homeView.getTimeBetweenValue()));
+        configValues.put("betweenIntersectionTime" , Math.round(homeView.getTimeBetweenValue()));
+        }
+        if (homeView.getOpenedFromStartingView()) {
+        configValues.put("carReactionTime" , Math.round(homeView.getCarReactionTime()));
+        }
 
         ConfigController.setConfigValues(configValues);
+
+        System.exit(0);
     }
 
 

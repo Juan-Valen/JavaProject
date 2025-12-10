@@ -1,6 +1,7 @@
 
 package org.example.view;
 
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -9,6 +10,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import org.example.controller.ConfigController;
 import org.example.controller.HomeController;
 import org.example.controller.SimulationController;
 import org.example.controller.TrafficLightController;
@@ -16,9 +18,7 @@ import org.example.framework.IntersectionEngine;
 import org.example.model.TrafficLight;
 import org.example.model.TrafficLightIntersection;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HomeView {
     public static class LightSet {
@@ -37,9 +37,14 @@ public class HomeView {
     private TimeBetweenIntersection timeToNext;
     private CarReactionTime carReactionTime;
 
+    private boolean openedFromStartingView = false;
+
     public Scene buildScene(StartingView startingView) {
-        if (startingView == null) return null;
-        this.startingView = startingView;
+        if(startingView == null){
+            return null;
+        }
+
+        openedFromStartingView = true;
 
         // Control panel
         HBox controls = new HBox(10);
@@ -52,6 +57,7 @@ public class HomeView {
         carInput.setPromptText("Add cars (amount)");
         Button addCarsBtn = new Button("Add Car");
 
+        // sliders
         timeToNext = new TimeBetweenIntersection();
         carReactionTime = new CarReactionTime();
 
@@ -59,6 +65,7 @@ public class HomeView {
                 pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn, timeToNext, carReactionTime
         );
 
+        // Layout
         BorderPane root = new BorderPane();
         root.setCenter(intersectionPane);
         root.setBottom(controls);
@@ -67,6 +74,8 @@ public class HomeView {
 
         // --- Use ONE TrafficLightController for all intersections ---
         TrafficLightController trafficLightController = new TrafficLightController();
+
+        initLights(trafficLightController);
 
         IntersectionEngine intersectionEngine = new IntersectionEngine(trafficLightController);
 
@@ -128,6 +137,17 @@ public class HomeView {
 
 
 
+    public void initLights(TrafficLightController controller) {
+
+        if (northLight == null || southLight == null || eastLight == null || westLight == null) {
+            System.err.println("Lights not initialized yet; skipping update.");
+            return;
+        }
+        northLight.setFill(toColor(controller.getNorth().getState()));
+        southLight.setFill(toColor(controller.getSouth().getState()));
+        eastLight.setFill(toColor(controller.getEast().getState()));
+        westLight.setFill(toColor(controller.getWest().getState()));
+    }
 
     public void updateQueues(Map<String, Integer> queues) {
         System.out.println("Cars in queue: " + queues);
