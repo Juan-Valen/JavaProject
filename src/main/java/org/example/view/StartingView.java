@@ -82,8 +82,7 @@ public class StartingView extends Application {
 
         Button startButton = new Button("Start Simulation");
         startButton.setOnAction(e -> {
-            HomeView homeView = new HomeView();
-            Scene homeScene = homeView.buildScene(this); // pass StartingView
+            Scene homeScene = homeView.buildScene(this, getIntersections()); // pass StartingView
 
             // set saved values from starting view to home view sliders
             if (config.getConfigValues().get("betweenIntersectionTime") != null) {
@@ -146,6 +145,36 @@ public class StartingView extends Application {
         if (!"Don't show intersection".equals(intersection4.getValue()))
             result.add(intersection4.getValue());
         return result;
+    }
+
+    public List<String> getIntersections() {
+        List<String> intersectionList = new ArrayList<>();
+        switch (intersection1.getValue()) {
+            case "Has traffic lights" -> intersectionList.add("Traffic Light Intersection");
+            case "Doesn't have traffic lights" -> intersectionList.add("Bare Intersection");
+        }
+
+        if (!"Don't show intersection".equals(intersection2.getValue()) && intersection2.getValue() != null) {
+            switch (intersection2.getValue()) {
+                case "Has traffic lights" -> intersectionList.add("Traffic Light Intersection");
+                case "Doesn't have traffic lights" -> intersectionList.add("Bare Intersection");
+            }
+        }
+
+        if (!"Don't show intersection".equals(intersection3.getValue()) && intersection3.getValue() != null) {
+            switch (intersection3.getValue()) {
+                case "Has traffic lights" -> intersectionList.add("Traffic Light Intersection");
+                case "Doesn't have traffic lights" -> intersectionList.add("Bare Intersection");
+            }
+        }
+
+        if (!"Don't show intersection".equals(intersection4.getValue()) && intersection4.getValue() != null) {
+            switch (intersection4.getValue()) {
+                case "Has traffic lights" -> intersectionList.add("Traffic Light Intersection");
+                case "Doesn't have traffic lights" -> intersectionList.add("Bare Intersection");
+            }
+        }
+        return intersectionList;
     }
 
     @Override

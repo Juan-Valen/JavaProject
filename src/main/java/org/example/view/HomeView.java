@@ -36,10 +36,11 @@ public class HomeView {
 
     private TimeBetweenIntersection timeToNext;
     private CarReactionTime carReactionTime;
+    private SimSpeed simSpeed;
 
     private boolean openedFromStartingView = false;
 
-    public Scene buildScene(StartingView startingView) {
+    public Scene buildScene(StartingView startingView, List<String> intersectionTypes) {
         if(startingView == null){
             return null;
         }
@@ -60,9 +61,11 @@ public class HomeView {
         // sliders
         timeToNext = new TimeBetweenIntersection();
         carReactionTime = new CarReactionTime();
+        simSpeed = new SimSpeed();
+
 
         controls.getChildren().addAll(
-                pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn, timeToNext, carReactionTime
+                pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn, timeToNext, carReactionTime, simSpeed
         );
 
         // Layout
@@ -78,6 +81,9 @@ public class HomeView {
         initLights(trafficLightController);
 
         IntersectionEngine intersectionEngine = new IntersectionEngine(trafficLightController);
+        SimulationController simulationController = new SimulationController(intersectionEngine, this);
+
+        intersectionEngine.setIntersections(intersectionTypes);
 
         List<String> modes = startingView.getIntersectionModes();
         if (modes == null || modes.isEmpty()) return view;

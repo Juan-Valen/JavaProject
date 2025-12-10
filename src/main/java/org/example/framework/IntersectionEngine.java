@@ -38,6 +38,8 @@ public class IntersectionEngine extends Engine{
     // Traffic light controller shared by intersections
     private TrafficLightController trafficLightController;
 
+    List<String> intersectionTypeList = new ArrayList<>();
+
     public IntersectionEngine(TrafficLightController trafficLightController) {
         this.trafficLightController = trafficLightController;
     }
@@ -75,7 +77,7 @@ public class IntersectionEngine extends Engine{
         passThroughTimes.add(time);
     }
 
-    private double simulationSpeed = 1; // How many seconds to sleep between events
+    private static double simulationSpeed = 1; // How many seconds to sleep between events
 
     private static int timeToCrossIntersection = 10; // time to cross intersection once started
 
@@ -270,7 +272,31 @@ public class IntersectionEngine extends Engine{
             }
         }
 
-        this.intersectionList = tempIntersectionList;
+        // Remove the last element as it's already processed
+        intersectionTypeList.remove(intersectionTypeList.size()-1);
+
+
+        // Now build the rest of the chain
+        for (int i = intersectionTypeList.size() -1; i >= 0; i--) {
+            String type = intersectionTypeList.get(i);
+            switch (type) {
+                case "Bare Intersection" -> {
+                    BareIntersection bareIntersection = new BareIntersection("Intersection-" + (i+1), tempIntersectionList.get(intersectionTypeList.size()-(i+1)), trafficLightController);
+                    tempIntersectionList.add(bareIntersection);
+                }
+                case "Traffic Light Intersection" -> {
+                    TrafficLightIntersection trafficLightIntersection = new TrafficLightIntersection("Intersection-" + (i+1), tempIntersectionList.get(intersectionTypeList.size()-(i+1)), trafficLightController);
+                    tempIntersectionList.add(trafficLightIntersection);
+                }
+                default -> {
+                    // Skip adding an intersection for "Don't show intersection"
+                }
+            }
+        }
+        // Reverse the list to maintain the original order
+        for (int i = tempIntersectionList.size() -1; i >= 0; i--) {
+            intersectionList.add(tempIntersectionList.get(i));
+        }
     }
 */
 
@@ -343,6 +369,18 @@ public class IntersectionEngine extends Engine{
     public static void setCarArrivalIntervalDist(int avgArrivalInterval) {
     	carArrivalIntervalDist = new Normal((double) avgArrivalInterval, (double) avgArrivalInterval);
     }
+
+    public static void setSimulationSpeed(double simulationSpeed) {
+        if (simulationSpeed <= 0) {
+            throw new IllegalArgumentException("simulationSpeed must be > 0");
+        }
+        IntersectionEngine.simulationSpeed = simulationSpeed;
+    }
+
+    public synchronized double getSimulationSpeed() {
+        return simulationSpeed;
+    }
+
     public EventList getEventList(){
         return el;
     }

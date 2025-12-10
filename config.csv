@@ -1,2 +1,4 @@
 betweenIntersectionTime,2
 carReactionTime,3
+carGroupAvgSize,4
+avgCarArrivalInterval,120
