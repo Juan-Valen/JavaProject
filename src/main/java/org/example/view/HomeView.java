@@ -19,14 +19,16 @@ import org.example.model.TrafficLightIntersection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 public class HomeView {
-    private static class LightSet {
-        Circle north, south, east, west;
+    public static class LightSet {
+        public Circle north;
+        public Circle south;
+        public Circle east;
+        public Circle west;
     }
 
-    private List<LightSet> intersectionLights = new ArrayList<>();
+    public List<LightSet> intersectionLights = new ArrayList<>();
     // Traffic lights
 
     private Pane intersectionPane = new Pane();
@@ -36,9 +38,7 @@ public class HomeView {
     private CarReactionTime carReactionTime;
 
     public Scene buildScene(StartingView startingView) {
-        if(startingView == null){
-            return null;
-        }
+        if (startingView == null) return null;
         this.startingView = startingView;
 
         // Control panel
@@ -52,7 +52,6 @@ public class HomeView {
         carInput.setPromptText("Add cars (amount)");
         Button addCarsBtn = new Button("Add Car");
 
-        // sliders
         timeToNext = new TimeBetweenIntersection();
         carReactionTime = new CarReactionTime();
 
@@ -60,61 +59,64 @@ public class HomeView {
                 pauseBtn, resumeBtn, timeInput, addTimeBtn, carInput, addCarsBtn, timeToNext, carReactionTime
         );
 
-        // Layout
         BorderPane root = new BorderPane();
         root.setCenter(intersectionPane);
         root.setBottom(controls);
 
         Scene view = new Scene(root, 1500, 700);
 
-
-        // Create Models & Controllers
+        // --- Use ONE TrafficLightController for all intersections ---
         TrafficLightController trafficLightController = new TrafficLightController();
 
-        initLights(trafficLightController);
-
         IntersectionEngine intersectionEngine = new IntersectionEngine(trafficLightController);
-        SimulationController simulationController = new SimulationController(intersectionEngine, this);
 
         List<String> modes = startingView.getIntersectionModes();
-        List<String> validEngineModes = new ArrayList<>();
-        if(modes == null || modes.isEmpty()){return view;}
-        for (String mode : modes) {
-            if ("Doesn't have traffic lights".equals(mode)) {
-                validEngineModes.add("Bare Intersection");
-            } else if ("Has traffic lights".equals(mode)) {
-                validEngineModes.add("Traffic Light Intersection");
-            }
-            // skip "Don't show intersection" or null
-        }
+        if (modes == null || modes.isEmpty()) return view;
 
-        if (validEngineModes.isEmpty()) {
-            System.err.println("ERROR: No valid intersections to create");
-            return view;
-        }
-
-        intersectionEngine.setIntersections(validEngineModes);
-
-// Build intersections based on mode
+        List<TrafficLightIntersection> intersections = new ArrayList<>();
         for (int i = 0; i < modes.size(); i++) {
             String mode = modes.get(i);
+            if (mode == null || mode.equals("Don't show intersection")) continue;
 
-            if (mode == null || mode.equals("Don't show intersection")) {
-                continue; // skip building a UI intersection
-            }
-            Pane inter = buildIntersection(i, modes.get(i));
-            intersectionPane.getChildren().add(inter);
+            TrafficLightIntersection intersection = new TrafficLightIntersection(
+                    "Intersection-" + i,
+                    null,
+                    trafficLightController // SAME controller for all
+            );
+            // Register intersections with engine
+            intersectionEngine.addToIntersectionList(intersection);
+
+
+
+            // Build UI for intersection
+            Pane interPane = buildIntersection(i, mode, intersectionEngine);
+            intersectionPane.getChildren().add(interPane);
+
+            // Register the lights with the controller
+            trafficLightController.setLightCircles(intersectionLights.get(intersectionLights.size() - 1));
         }
 
+
+        // Initialize lights
+        trafficLightController.setNSGreen();            // NS green at start
+        trafficLightController.setGreenDelay(2000);     // 2 sec green
+        trafficLightController.setYellowDelay(500);     // 0.5 sec yellow
+
+        SimulationController simulationController = new SimulationController(intersectionEngine, this, intersectionLights);
+
+        // Start simulation
         simulationController.startSimulation();
 
+        // Buttons
         HomeController controller = new HomeController(this, simulationController);
         pauseBtn.setOnAction(e -> controller.pauseSimulation());
         resumeBtn.setOnAction(e -> controller.resumeSimulation());
         addTimeBtn.setOnAction(e -> controller.addTime(timeInput.getText()));
         addCarsBtn.setOnAction(e -> controller.addCars(carInput.getText()));
+
         return view;
     }
+
 
     private static Color toColor(TrafficLight.State s) {
         return switch (s) {
@@ -126,17 +128,6 @@ public class HomeView {
 
 
 
-    public void initLights(TrafficLightController controller) {
-/*
-        if (northLight == null || southLight == null || eastLight == null || westLight == null) {
-            System.err.println("Lights not initialized yet; skipping update.");
-            return;
-        }
-        northLight.setFill(toColor(controller.getNorth().getState()));
-        southLight.setFill(toColor(controller.getSouth().getState()));
-        eastLight.setFill(toColor(controller.getEast().getState()));
-        westLight.setFill(toColor(controller.getWest().getState()));*/
-    }
 
     public void updateQueues(Map<String, Integer> queues) {
         System.out.println("Cars in queue: " + queues);
@@ -146,7 +137,7 @@ public class HomeView {
     public void addCarNode(Circle carShape) {
         intersectionPane.getChildren().add(carShape);
     }
-    public Pane buildIntersection(int index, String mode) {
+    public Pane buildIntersection(int index, String mode, IntersectionEngine intersectionEngine) {
         Pane interPane = new Pane();
         interPane.setPrefSize(400, 400);
 
@@ -196,6 +187,24 @@ public class HomeView {
 
         intersectionLights.add(lights);
 
+        if (index < intersectionEngine.getIntersectionList().size()) {
+            TrafficLightIntersection intersection = intersectionEngine.getIntersectionList().get(index);
+
+            // Set intersection to have its own lights if not yet initialized
+            if (intersection.getNorthLight() == null) {
+                intersection.setNorthLight(new TrafficLight("NORTH"));
+                intersection.setSouthLight(new TrafficLight("SOUTH"));
+                intersection.setEastLight(new TrafficLight("EAST"));
+                intersection.setWestLight(new TrafficLight("WEST"));
+            }
+
+            // Attach UI circles to the intersection for refresh
+            intersection.setLightSet(lights);
+        } else {
+            System.err.println("Invalid intersection index: " + index);
+            System.out.println("Size of the list: " + intersectionEngine.getIntersectionList().size());
+        }
+
         interPane.getChildren().addAll(
                 verticalRoad, horizontalRoad,
                 verticalRoadLine, horizontalRoadLine, roadCenter,
@@ -221,5 +230,7 @@ public class HomeView {
     public double getCarReactionTime() {
         return carReactionTime.getReactionTime();
     }
-
+    public List<LightSet> getIntersectionLights() {
+        return intersectionLights;
+    }
 }
