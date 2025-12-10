@@ -5,6 +5,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import org.example.framework.IntersectionEngine;
 import org.example.model.TrafficLight;
+import org.example.view.HomeView;
+
 import java.util.List;
 
 public class TrafficLightController {
@@ -23,13 +25,36 @@ public class TrafficLightController {
     private final TrafficLight west = new TrafficLight("WEST");
 
     private double cycleTime = 0.0;
+    private HomeView.LightSet uiLights;
 
+    public void setLightCircles(HomeView.LightSet lights) {
+        this.uiLights = lights;
+        refreshUI();
+
+    }
+
+    public void refreshUI() {
+        if (uiLights == null) return;
+
+        uiLights.north.setFill(toColor(north.getState()));
+        uiLights.south.setFill(toColor(south.getState()));
+        uiLights.east.setFill(toColor(east.getState()));
+        uiLights.west.setFill(toColor(west.getState()));
+    }
+
+    private Color toColor(TrafficLight.State state) {
+        return switch(state) {
+            case RED -> Color.RED;
+            case YELLOW -> Color.YELLOW;
+            case GREEN -> Color.GREEN;
+        };
+    }
     public void update(double seconds) {
         cycleTime += seconds;
 
         double greenDuration = 1;
         double yellowDuration = 0.5;
-        double phaseDuration = greenDuration + yellowDuration; // 7s per phase
+        double phaseDuration = greenDuration + yellowDuration;
 
         if (cycleTime < greenDuration) {
             // Phase 1: NS GREEN, EW RED
@@ -63,14 +88,19 @@ public class TrafficLightController {
     // Add specific intersection control later
     // Checks current states and changes accordingly, returns integer used as the delay for next change. Integer defined at the top of the class.
     public int changeLights() {
-
+        // If everything is RED, start with NS green
+        if (north.getState() == TrafficLight.State.RED && east.getState() == TrafficLight.State.RED) {
+            setNSGreen();
+            refreshUI();
+            return greenDelay;  // schedule next change
+        }
         switch (north.getState()) {
             case GREEN ->  {
                 north.setState(TrafficLight.State.YELLOW);
                 south.setState(TrafficLight.State.YELLOW);
                 east.setState(TrafficLight.State.RED);
                 west.setState(TrafficLight.State.RED);
-
+                refreshUI();
                 return greenDelay;
             }
             case YELLOW -> {
@@ -78,7 +108,7 @@ public class TrafficLightController {
                 south.setState(TrafficLight.State.RED);
                 east.setState(TrafficLight.State.GREEN);
                 west.setState(TrafficLight.State.GREEN);
-
+                refreshUI();
                 return yellowDelay;
             }
             case RED -> {
@@ -88,7 +118,7 @@ public class TrafficLightController {
                         south.setState(TrafficLight.State.RED);
                         east.setState(TrafficLight.State.YELLOW);
                         west.setState(TrafficLight.State.YELLOW);
-
+                        refreshUI();
                         return greenDelay;
                     }
                     case YELLOW -> {
@@ -96,7 +126,7 @@ public class TrafficLightController {
                         south.setState(TrafficLight.State.GREEN);
                         east.setState(TrafficLight.State.RED);
                         west.setState(TrafficLight.State.RED);
-
+                        refreshUI();
                         return yellowDelay;
                     }
                 }

@@ -1,6 +1,7 @@
 
 package org.example.controller;
 
+import javafx.animation.Animation;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.scene.paint.Color;
@@ -8,9 +9,7 @@ import javafx.scene.shape.Circle;
 import javafx.util.*;
 import org.example.framework.IntersectionEngine;
 import org.example.framework.Event;
-import org.example.model.Car;
-import org.example.model.Arrival;
-import org.example.model.Departure;
+import org.example.model.*;
 
 
 import org.example.view.HomeView;
@@ -21,43 +20,31 @@ public class SimulationController {
     private IntersectionEngine engine;
     private HomeView view;
     private final Map<Car, Circle> carNodes = new HashMap<>();
+
+    private final Map<Car, Deque<Animation>> queues = new HashMap<>();
+    private final Set<Car> animating = new HashSet<>();
+    private final Map<Car, Boolean> carDirection = new HashMap<>();
+    // true = fromA (left→right), false = fromB (right→left)
+
     private Thread simulationThread;
 
-    private static final double ROAD_LENGTH = 290;
-    private static final int STEPS_TO_NEXT_INTERSECTION = 1;
+    private List<HomeView.LightSet> intersectionLights = new ArrayList<>();
+
+    private static final double ROAD_LENGTH = 280;
 
     // COORDINATES FOR CAR ANIMATION
-    private static final double START_X_N = 200;
-    private static final double START_Y_N = 0;
-    private static final double START_X_S = 80;
-    private static final double START_Y_S = 320;
-    private final double START_X_E = 700;
+    private static final double START_X_W = -170;
+    private static final double START_Y_W = 200;
+
+    private final double START_X_E = 1350;
     private static final double START_Y_E= 160;
-    private static final double START_X_W = 0;
-    private static final double START_Y_W = 320;
-
-    private static final double END_X_N = 200;
-    private static final double END_Y_N = 320;
-    private static final double END_X_S = 80;
-    private static final double END_Y_S = 0;
-    private static final double END_X_E = 0;
-    private static final double END_Y_E = 150;
-    private static final double END_X_W = 320;
-    private static final double END_Y_W = 80;
-
-    private static final double STOP_X_N = 200;
-    private static final double STOP_Y_N = 80;
-    private static final double STOP_X_S = 100;
-    private static final double STOP_Y_S = 80;
-    private static final double STOP_X_E = 500;
-    private static final double STOP_Y_E = 150;
-    private static final double STOP_X_W = 80;
-    private static final double STOP_Y_W = 80;
 
 
-    public SimulationController(IntersectionEngine engine, HomeView view) {
+
+    public SimulationController(IntersectionEngine engine, HomeView view, List<HomeView.LightSet> intersectionLights) {
         this.engine = engine;
         this.view = view;
+        this.intersectionLights = intersectionLights;
     }
 
 
@@ -72,79 +59,134 @@ public class SimulationController {
 
     private void updateView(Event event) {
         Platform.runLater(() -> {
-            view.initLights(engine.getTrafficLightController());
+
             view.updateQueues(engine.getIntersectionList().get(0).getQueueStates());
 
-            if (event.getType() == Event.EventType.ARRIVAL && event.getPayload() instanceof Arrival) {
-                Arrival arrival = (Arrival) event.getPayload();
-                Car car = arrival.car;
 
-                // Create car node
-                Circle carShape = new Circle(7, arrival.fromA ? Color.BLUE : Color.RED);
-                double startX = arrival.fromA ? START_X_N* view.getAmountOfIntersections() : START_X_E * view.getAmountOfIntersections();
-                double startY = arrival.fromA ? START_Y_N : START_Y_E;
-                double stopX = arrival.fromA ? (START_X_N+1*(ROAD_LENGTH* view.getAmountOfIntersections())- 780) : (START_X_E+1* (ROAD_LENGTH * view.getAmountOfIntersections())- 780);
-                double stopY = arrival.fromA ? START_Y_N : START_Y_E;
+            // Get slider-based timing
+            long reaction = (long) view.getCarReactionTime();     // human reaction time
+            long spacing  = (long) view.getTimeBetweenValue();    // spacing between cars
+            long animTime = reaction + spacing;                   // total movement delay
 
-                carShape.setCenterX(startX);
-                carShape.setCenterY(startY);
-                view.addCarNode(carShape);
-                carNodes.put(car, carShape);
-
-                // Animate to stop position
-                double sliderValueBetween = view.getTimeBetweenValue();
-                long parsedSliderVal = (long) sliderValueBetween;
-                double sliderValueReaction = view.getCarReactionTime();
-                long parsedSliderValReaction = (long) sliderValueReaction;
-
-                long totalSlderTime = parsedSliderValReaction + parsedSliderVal;
-
-                TranslateTransition moveToStop = new TranslateTransition(Duration.millis(totalSlderTime), carShape);
-                moveToStop.setToX(stopX - startX);
-                moveToStop.setToY(stopY - startY);
-                moveToStop.play();
+            // ===== LIGHT CHANGE =====
+            if (event.getType() == Event.EventType.LIGHT_CHANGE) {
+                TrafficLightChange tlc = (TrafficLightChange) event.getPayload();
+                tlc.run(event.getTime(), engine.getEventList()); // update model
+                for (TrafficLightIntersection inter : engine.getIntersectionList()) {
+                    inter.changeLights(); // update its own lights
+                }
+                refreshIntersectionLights(); // now reads updated intersection lights
             }
 
+            // ===== ARRIVAL =====
+            if (event.getType() == Event.EventType.ARRIVAL && event.getPayload() instanceof Arrival) {
 
-            if (event.getType() == Event.EventType.DEPARTURE && event.getPayload() instanceof Departure) {
+                Arrival arrival = (Arrival) event.getPayload();
+                Car car = arrival.car;
+                carDirection.put(car, arrival.fromA);
+                Circle node = new Circle(7, arrival.fromA ? Color.BLUE : Color.RED);
+
+                double totalWidth = ROAD_LENGTH * view.getAmountOfIntersections();
+
+                double startX = arrival.fromA
+                        ? START_X_W
+                        : totalWidth + 260;
+
+                double startY = arrival.fromA ? START_Y_W : START_Y_E;
+
+                node.setCenterX(startX);
+                node.setCenterY(startY);
+                view.addCarNode(node);
+                carNodes.put(car, node);
+
+                // ARRIVAL movement = 1 intersection
+                TranslateTransition arrivalAnim = new TranslateTransition(Duration.millis(animTime*100), node);
+                arrivalAnim.setByX(arrival.fromA ? ROAD_LENGTH : -ROAD_LENGTH );
+                car.incrementTimesMoved();
+                enqueue(car, arrivalAnim);
+            }
+
+            // ===== DEPARTURE =====
+            if (event.getType() == Event.EventType.DEPARTURE && event.getPayload() instanceof Departure)  {
 
                 Departure departure = (Departure) event.getPayload();
                 Car car = departure.car;
 
-                Circle carShape = carNodes.get(car);
-                if (carShape == null) return;
+                Circle node = carNodes.get(car);
+                if (node == null) return;
 
+                TranslateTransition departAnim = new TranslateTransition(Duration.millis(animTime*100), node);
+                departAnim.setByX(departure.fromA ? +ROAD_LENGTH : -ROAD_LENGTH);
 
-                double startX = carShape.getCenterX() + carShape.getTranslateX();
-                double startY = carShape.getCenterY() + carShape.getTranslateY();
-
-
-                double endX = startX - ROAD_LENGTH;
-                double endY = startY;
-
-
-                TranslateTransition step = new TranslateTransition(Duration.millis(500), carShape);
-                step.setByX(-ROAD_LENGTH);
-                step.play();
+                enqueue(car, departAnim);
 
                 car.incrementTimesMoved();
-                System.out.println("Car step = " + car.getTimesMoved());
 
-                // Slider
-                double sliderValueBetween = view.getTimeBetweenValue();
-                long parsedSliderVal = (long) sliderValueBetween;
-                double sliderValueReaction = view.getCarReactionTime();
-                long parsedSliderValReaction = (long) sliderValueReaction;
-                long totalSliderTime = parsedSliderValReaction + parsedSliderVal;
-
-                TranslateTransition move = new TranslateTransition(Duration.millis(totalSliderTime), carShape);
-                move.setToX(endX - carShape.getCenterX());
-                move.setToY(endY - carShape.getCenterY());
-                move.play();
+                if (car.getTimesMoved() >= view.getAmountOfIntersections()) {
+                    carNodes.remove(car);
+                    carDirection.remove(car);
+                    System.out.println("Car left simulation");
+                }
             }
         });
     }
+
+
     public IntersectionEngine getEngine() {
         return engine;
     }
+
+
+    private void enqueue(Car car, Animation anim) {
+        queues.computeIfAbsent(car, c -> new ArrayDeque<>()).add(anim);
+        if (!animating.contains(car)) {
+            playNext(car);
+        }
+    }
+
+    private void playNext(Car car) {
+        Deque<Animation> q = queues.get(car);
+        if (q == null || q.isEmpty()) {
+            animating.remove(car);
+            return;
+        }
+        animating.add(car);
+        Animation next = q.pollFirst();
+        next.setOnFinished(e -> {
+            // If you need to increment movement count, keep a separate Car registry by ID.
+            playNext(car);
+        });
+        next.play();
+    }
+
+
+    private void refreshIntersectionLights() {
+        List<TrafficLightIntersection> intersections = engine.getIntersectionList();
+
+        for (int i = 0; i < intersections.size(); i++) {
+            TrafficLightIntersection intersection = intersections.get(i);
+            HomeView.LightSet lights = intersectionLights.get(i);
+
+            lights.north.setFill(toColor(intersection.getNorthLight().getState()));
+            lights.south.setFill(toColor(intersection.getSouthLight().getState()));
+            lights.east.setFill(toColor(intersection.getEastLight().getState()));
+            lights.west.setFill(toColor(intersection.getWestLight().getState()));
+        }
+    }
+
+
+    private Color toColor(org.example.model.TrafficLight.State state) {
+        return switch(state) {
+            case RED -> Color.RED;
+            case YELLOW -> Color.YELLOW;
+            case GREEN -> Color.GREEN;
+        };
+    }
+
+
+
+
+
+
+
 }
