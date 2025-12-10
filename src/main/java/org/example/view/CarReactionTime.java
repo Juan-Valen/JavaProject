@@ -8,7 +8,7 @@ import org.example.framework.IntersectionEngine;
 
 public class CarReactionTime extends HBox {
 
-    private final Slider slider = new Slider(0, 10, 3); // min, max, initial
+    private static final Slider slider = new Slider(1, 20, 3); // min, max, initial
     private final Label valueLabel = new Label();
 
     public CarReactionTime() {
@@ -34,10 +34,10 @@ public class CarReactionTime extends HBox {
     }
 
     // methods
-    public double getReactionTime() {
+    public static double getReactionTime() {
         return slider.getValue();
     }
-    public void setReactionTime(double seconds) {
+    public static void setReactionTime(double seconds) {
         slider.setValue(seconds);
     }
     public Slider getReactionSlider() {

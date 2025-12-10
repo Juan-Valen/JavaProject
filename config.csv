@@ -1,5 +1,2 @@
-simulationDuration,1000
-betweenIntersectionTime,80
-carGroupAvgSize,4
-avgCarArrivalInterval,120
-intersectionPassThroughTime,15
+betweenIntersectionTime,2
+carReactionTime,3
