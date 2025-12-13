@@ -8,7 +8,6 @@ import org.example.framework.IntersectionEngine;
 import java.util.LinkedList;
 
 public class TrafficLightIntersection extends  Intersection {
-    String lastPassedDirection;
 
     public final TrafficLight north = new TrafficLight("NORTH");
     public final TrafficLight south = new TrafficLight("SOUTH");
@@ -80,6 +79,7 @@ public class TrafficLightIntersection extends  Intersection {
 
         long timeToPass = now + IntersectionEngine.getTimeToCrossIntersection();
         long extra = 0;
+        long crossingTime;
 
         if (car.isWaitingAtLight()) {
             car.setWaitingAtLight(false);
@@ -87,9 +87,12 @@ public class TrafficLightIntersection extends  Intersection {
         }
 
         if (extra > 0) {
-            long crossingTime = timeToPass + extra;
+            crossingTime = timeToPass + extra;
         }
-        long crossingTime = timeToPass;
+        else {
+            crossingTime = timeToPass;
+        }
+
         eventList.add(new Event(crossingTime, Event.EventType.DEPARTURE, new Departure(car, nsGreen, this), "Departure after service"));
     }
 

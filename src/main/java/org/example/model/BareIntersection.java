@@ -6,6 +6,7 @@ import org.example.framework.EventList;
 import org.example.framework.IntersectionEngine;
 
 import java.util.LinkedList;
+import java.util.Objects;
 
 public class BareIntersection extends Intersection{
     String lastPassedDirection;
@@ -13,6 +14,26 @@ public class BareIntersection extends Intersection{
 
     public BareIntersection(String name, Intersection next, TrafficLightController controller) {
         super(name, next, controller);
+    }
+
+    public void handleArrival(Arrival a) {
+
+        if (a.fromA) {
+            if (!queueA.isEmpty() || (Objects.equals(lastPassedDirection, "B") && busy)) {
+                a.car.setWaitingInBareIntersectionQueue(true);
+            }
+            queueA.addLast(a.car);
+        } else {
+            if (!queueB.isEmpty() || (Objects.equals(lastPassedDirection, "A") && busy)) {
+                a.car.setWaitingInBareIntersectionQueue(true);
+            }
+            queueB.addLast(a.car);
+        }
+        System.out.println(" ");
+        System.out.println("---------- HandleArrival: ------");
+        System.out.printf("%s ARRIVE %s from %s at %.0f \n",
+                name, a.car, a.fromA ? "A" : "B", (double) ClockTime());
+        System.out.println("QueueA size: " + queueA.size() + ", QueueB size: " + queueB.size());
     }
 
     @Override
@@ -25,7 +46,8 @@ public class BareIntersection extends Intersection{
         Car car = null;
 
         // determine service time
-        long serviceTime = IntersectionEngine.getTimeToCrossIntersection() + (long) IntersectionEngine.getDriverReactionTimeDist().sample();
+        long reactionServiceTime = IntersectionEngine.getTimeToCrossIntersection() + (long) IntersectionEngine.getDriverReactionTimeDist().sample();
+        long serviceTime = IntersectionEngine.getTimeToCrossIntersection();
 
         // if one of the queues is empty, serve from the other
         if (queueA.isEmpty() || queueB.isEmpty()) {
@@ -40,19 +62,27 @@ public class BareIntersection extends Intersection{
                 car = queueB.removeFirst();
                 eventList.add(new Event(now + serviceTime, Event.EventType.DEPARTURE, new Departure(car, false, this), "Departure of Car from direction B"));
             }
+                System.out.printf("%s START SERVICE %s from " + lastPassedDirection + " at %.0f for %d time units\n", name, car, (double) now, serviceTime);
         } else {
             // both queues have cars, alternate based on last passed direction
             if ("B".equals(lastPassedDirection)) {
                 car = queueA.removeFirst();
                 lastPassedDirection = "A";
-                eventList.add(new Event(now + serviceTime, Event.EventType.DEPARTURE, new Departure(car, true, this), "Departure of Car from direction A"));
+                eventList.add(new Event(now + (car.isWaitingInBareIntersectionQueue() ? reactionServiceTime : serviceTime), Event.EventType.DEPARTURE, new Departure(car, true, this), "Departure of Car from direction A"));
+
+                System.out.printf("%s START SERVICE %s from " + lastPassedDirection + " at %.0f for %d time units\n", name, car, (double) now, (car.isWaitingInBareIntersectionQueue() ? reactionServiceTime : serviceTime));
+                car.setWaitingInBareIntersectionQueue(false);
+
             } else {
+
                 car = queueB.removeFirst();
                 lastPassedDirection = "B";
-                eventList.add(new Event(now + serviceTime, Event.EventType.DEPARTURE, new Departure(car, false, this), "Departure of Car from direction B"));
+                eventList.add(new Event(now + (car.isWaitingInBareIntersectionQueue() ? reactionServiceTime : serviceTime), Event.EventType.DEPARTURE, new Departure(car, false, this), "Departure of Car from direction B"));
+
+                System.out.printf("%s START SERVICE %s from " + lastPassedDirection + " at %.0f for %d time units\n", name, car, (double) now, (car.isWaitingInBareIntersectionQueue() ? reactionServiceTime : serviceTime));
+                car.setWaitingInBareIntersectionQueue(false);
             }
         }
                 busy = true;
-                System.out.printf("%s START SERVICE %s from " + lastPassedDirection + " at %.0f for %d time units\n", name, car, (double) now, serviceTime);
     }
 }

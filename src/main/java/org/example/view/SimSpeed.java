@@ -9,7 +9,7 @@ import org.example.framework.IntersectionEngine;
 public class SimSpeed extends HBox {
 
 
-    private static final Slider slider = new Slider(0.001, 10, 1); // min, max, initial
+    private static final Slider slider = new Slider(0.001, 5, 1); // min, max, initial
     private final Label valueLabel = new Label();
 
     public SimSpeed() {

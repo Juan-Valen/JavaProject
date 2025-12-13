@@ -86,8 +86,8 @@ public class IntersectionEngine extends Engine{
     private static Normal carArrivalIntervalDist = new Normal(avgArrivalInterval, avgArrivalInterval); // average arrival interval for car groups
 
 
-    private int greendelay = 30; // seconds after next light change after turning green
-    private int yellowdelay = 6; // seconds after next light change after turning yellow
+    private int greendelay = 50; // seconds after next light change after turning green
+    private int yellowdelay = 10; // seconds after next light change after turning yellow
 
     @Override
     protected void initialize() {
