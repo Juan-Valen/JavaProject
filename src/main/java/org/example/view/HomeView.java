@@ -16,6 +16,7 @@ import org.example.controller.HomeController;
 import org.example.controller.SimulationController;
 import org.example.controller.TrafficLightController;
 import org.example.framework.IntersectionEngine;
+import org.example.model.Intersection;
 import org.example.model.TrafficLight;
 import org.example.model.TrafficLightIntersection;
 
@@ -25,13 +26,18 @@ public class HomeView {
 
 
     // Traffic lights
-    private Circle northLight;
-    private Circle southLight;
-    private Circle eastLight;
-    private Circle westLight;
+    public static class LightSet {
+        public Circle north;
+        public Circle south;
+        public Circle east;
+        public Circle west;
+    }
+    public List<LightSet> intersectionLights = new ArrayList<>();
+    TrafficLightController trafficLightController = new TrafficLightController();
+    IntersectionEngine intersectionEngine = new IntersectionEngine(trafficLightController, this);
+
     private Pane intersectionPane = new Pane();
     private StartingView startingView;
-
     private TimeBetweenIntersection timeToNext;
     private CarReactionTime carReactionTime;
     private SimSpeed simSpeed;
@@ -83,22 +89,15 @@ public class HomeView {
         root.setBottom(controlScroll);
         Scene view = new Scene(root, 1500, 700);
 
+        intersectionEngine.setIntersections(intersectionTypes);
 
-        // Draw intersections
-        for (int i = 0; i < startingView.getAmountOfIntersections(); i++) {
-            Pane inter = buildIntersection(i);
-            root.getChildren().add(inter);
+        for (int i = 0; i < intersectionEngine.getIntersectionList().size(); i++ ){
+            Pane interPane = buildIntersection(i, intersectionEngine.getIntersectionTypeAt(i), intersectionEngine);
+            intersectionPane.getChildren().add(interPane);
+
         }
-
-        // Create Models & Controllers
-        TrafficLightController trafficLightController = new TrafficLightController();
-
-        initLights(trafficLightController);
-
-        IntersectionEngine intersectionEngine = new IntersectionEngine(trafficLightController);
         SimulationController simulationController = new SimulationController(intersectionEngine, this);
 
-        intersectionEngine.setIntersections(intersectionTypes);
 
         simulationController.startSimulation();
 
@@ -118,18 +117,36 @@ public class HomeView {
         };
     }
 
-
-
-    public void initLights(TrafficLightController controller) {
-
-        if (northLight == null || southLight == null || eastLight == null || westLight == null) {
-            System.err.println("Lights not initialized yet; skipping update.");
+    public void refreshTrafficLights() {
+        if(intersectionEngine == null){
             return;
         }
-        northLight.setFill(toColor(controller.getNorth().getState()));
-        southLight.setFill(toColor(controller.getSouth().getState()));
-        eastLight.setFill(toColor(controller.getEast().getState()));
-        westLight.setFill(toColor(controller.getWest().getState()));
+        List<Intersection> intersections = intersectionEngine.getIntersectionList();
+        int lightIndex = 0; // separate index for intersectionLights
+
+        for (int i = 0; i < intersections.size(); i++) {
+            Intersection intersection = intersections.get(i);
+
+            // Only refresh if it is a TrafficLightIntersection
+            if (intersection instanceof TrafficLightIntersection tli) {
+                LightSet lights = intersectionLights.get(lightIndex);
+
+                    lights.north.setFill(toColor(tli.getNorthLight().getState()));
+                    lights.south.setFill(toColor(tli.getSouthLight().getState()));
+                    lights.east.setFill(toColor(tli.getEastLight().getState()));
+                    lights.west.setFill(toColor(tli.getWestLight().getState()));
+
+                lightIndex++; // only increment when you have a traffic light intersection
+            }
+        }
+    }
+    private int getIntersectionIndex(TrafficLightIntersection intersection) {
+        for (int i = 0; i < intersectionLights.size(); i++) {
+            if (intersectionLights.get(i) != null) {
+                return i; // assumes engine and intersectionLights are in sync
+            }
+        }
+        return -1; // not found
     }
 
     public void updateQueues(Map<String, Integer> queues) {
@@ -140,17 +157,18 @@ public class HomeView {
     public void addCarNode(Circle carShape) {
         intersectionPane.getChildren().add(carShape);
     }
-    public Pane buildIntersection(int position){
+
+    public Pane buildIntersection(int index, String typeofIntersection ,IntersectionEngine intersectionEngine){
     Pane interPane = new Pane();
         // Intersection visualization
         interPane.setPrefSize(400, 400);
 
         // Draw roads
-        Rectangle verticalRoad = new Rectangle(140+(140*position*2), 0, 80, 320);
+        Rectangle verticalRoad = new Rectangle(140+(140*index*2), 0, 80, 320);
         verticalRoad.setFill(Color.LIGHTGRAY);
-        Rectangle horizontalRoad = new Rectangle((140*(position*2)), 140, 320, 80);
+        Rectangle horizontalRoad = new Rectangle((140*(index*2)), 140, 320, 80);
         horizontalRoad.setFill(Color.LIGHTGRAY);
-        Rectangle roadCenter = new Rectangle(140+(140*position*2), 140, 80, 80);
+        Rectangle roadCenter = new Rectangle(140+(140*index*2), 140, 80, 80);
         roadCenter.setFill(Color.LIGHTGRAY);
 
         // Draw road lines
@@ -174,17 +192,24 @@ public class HomeView {
         horizontalRoadLine.setStrokeWidth(2);
         horizontalRoadLine.getStrokeDashArray().addAll(20.0, 15.0);
 
-        // Traffic lights
-        northLight = new Circle(230, 230, 15);
-        southLight = new Circle(460, 460, 15);
-        eastLight  = new Circle(460, 230, 15);
-        westLight  = new Circle(230, 460, 15);
+        if(typeofIntersection.equals("Traffic Light Intersection")) {
+            LightSet lights = new LightSet();
+            lights.north = new Circle(120 + index * 280, 120, 8);
+            lights.south = new Circle(250 + index * 280, 250, 8);
+            lights.east = new Circle(250 + index * 280, 120, 8);
+            lights.west = new Circle(120 + index * 280, 250, 8);
+            intersectionLights.add(lights);
 
+            interPane.getChildren().addAll(
+                    lights.north, lights.south,
+                    lights.east, lights.west
+            );
+        }
         interPane.getChildren().addAll(
                 verticalRoad, horizontalRoad,
-                verticalRoadLine, horizontalRoadLine, roadCenter,
-                northLight, southLight, eastLight, westLight
+                verticalRoadLine, horizontalRoadLine, roadCenter
         );
+
         return interPane;
     }
 

@@ -72,75 +72,11 @@ public class SimulationController {
 
     private void updateView(Event event) {
         Platform.runLater(() -> {
-            view.initLights(engine.getTrafficLightController());
-            view.updateQueues(engine.getIntersectionList().get(0).getQueueStates());
-
             if (event.getType() == Event.EventType.ARRIVAL && event.getPayload() instanceof Arrival) {
                 Arrival arrival = (Arrival) event.getPayload();
                 Car car = arrival.car;
 
-                // Create car node
-                Circle carShape = new Circle(7, arrival.fromA ? Color.BLUE : Color.RED);
-                double startX = arrival.fromA ? START_X_N* view.getAmountOfIntersections() : START_X_E * view.getAmountOfIntersections();
-                double startY = arrival.fromA ? START_Y_N : START_Y_E;
-                double stopX = arrival.fromA ? (START_X_N+1*(ROAD_LENGTH* view.getAmountOfIntersections())- 780) : (START_X_E+1* (ROAD_LENGTH * view.getAmountOfIntersections())- 780);
-                double stopY = arrival.fromA ? START_Y_N : START_Y_E;
-
-                carShape.setCenterX(startX);
-                carShape.setCenterY(startY);
-                view.addCarNode(carShape);
-                carNodes.put(car, carShape);
-
-                // Animate to stop position
-                double sliderValueBetween = view.getTimeBetweenValue();
-                long parsedSliderVal = (long) sliderValueBetween;
-                double sliderValueReaction = view.getCarReactionTime();
-                long parsedSliderValReaction = (long) sliderValueReaction;
-
-                long totalSlderTime = parsedSliderValReaction + parsedSliderVal;
-
-                TranslateTransition moveToStop = new TranslateTransition(Duration.millis(totalSlderTime), carShape);
-                moveToStop.setToX(stopX - startX);
-                moveToStop.setToY(stopY - startY);
-                moveToStop.play();
-            }
-
-
-            if (event.getType() == Event.EventType.DEPARTURE && event.getPayload() instanceof Departure) {
-
-                Departure departure = (Departure) event.getPayload();
-                Car car = departure.car;
-
-                Circle carShape = carNodes.get(car);
-                if (carShape == null) return;
-
-
-                double startX = carShape.getCenterX() + carShape.getTranslateX();
-                double startY = carShape.getCenterY() + carShape.getTranslateY();
-
-
-                double endX = startX - ROAD_LENGTH;
-                double endY = startY;
-
-
-                TranslateTransition step = new TranslateTransition(Duration.millis(500), carShape);
-                step.setByX(-ROAD_LENGTH);
-                step.play();
-
-                car.incrementTimesMoved();
-                System.out.println("Car step = " + car.getTimesMoved());
-
-                // Slider
-                double sliderValueBetween = view.getTimeBetweenValue();
-                long parsedSliderVal = (long) sliderValueBetween;
-                double sliderValueReaction = view.getCarReactionTime();
-                long parsedSliderValReaction = (long) sliderValueReaction;
-                long totalSliderTime = parsedSliderValReaction + parsedSliderVal;
-
-                TranslateTransition move = new TranslateTransition(Duration.millis(totalSliderTime), carShape);
-                move.setToX(endX - carShape.getCenterX());
-                move.setToY(endY - carShape.getCenterY());
-                move.play();
+                arrival.getIntersection();
             }
         });
     }

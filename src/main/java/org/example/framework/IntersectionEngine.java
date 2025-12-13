@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import org.example.controller.TrafficLightController;
 import org.example.distributions.Normal;
 import org.example.model.*;
+import org.example.view.HomeView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,8 @@ import java.util.function.Consumer;
 public class IntersectionEngine extends Engine{
     // First intersection in chain
     private TrafficLightIntersection intersection1;
+
+    private HomeView homeview;
 
     // List of all intersections
     private List<Intersection> intersectionList = new ArrayList<>();
@@ -36,8 +39,10 @@ public class IntersectionEngine extends Engine{
 
     List<String> intersectionTypeList = new ArrayList<>();
 
-    public IntersectionEngine(TrafficLightController trafficLightController) {
+    public IntersectionEngine(TrafficLightController trafficLightController, HomeView homeview) {
         this.trafficLightController = trafficLightController;
+        this.homeview = homeview;
+        trafficLightController.setHomeView(homeview);
     }
 
     public TrafficLightController getTrafficLightController() {
@@ -265,11 +270,11 @@ public class IntersectionEngine extends Engine{
         }
     }
 
-
+/*
     public static void main(String[] args) {
         IntersectionEngine eng = new IntersectionEngine(new TrafficLightController());
         eng.run();
-    }
+    }*/
 
     public long getCurrentTime(){
         return Clock.getInstance().getClock();
@@ -353,6 +358,22 @@ public class IntersectionEngine extends Engine{
         System.out.println("Setting simulation duration to " + duration + " seconds.");
         setSimulationTime(duration);
     }
+    public String getIntersectionTypeAt(int index) {
+        if (index < 0 || index >= intersectionList.size()) {
+            return null; // or throw IllegalArgumentException
+        }
+        Intersection intersection = intersectionList.get(index);
+        if (intersection instanceof TrafficLightIntersection) {
+            return "Traffic Light Intersection";
+        } else if (intersection instanceof BareIntersection) {
+            return "Bare Intersection";
+        } else {
+            return "Unknown Intersection Type";
+        }
+    }
 
+    public HomeView getHomeview(){
+        return homeview;
+    }
 
 }
