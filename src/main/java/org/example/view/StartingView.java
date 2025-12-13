@@ -1,6 +1,8 @@
 package org.example.view;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -112,11 +114,7 @@ public class StartingView extends Application {
         stage.setTitle("Intersection Simulator");
         stage.show();
 
-        // Ensure complete application exit on window close
-        Platform.setImplicitExit(true);
-        stage.setOnCloseRequest(event -> {;
-            Platform.exit();
-        });
+
     }
 
     /** Recalculate number of intersections based on current selections */

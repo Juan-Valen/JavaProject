@@ -75,7 +75,6 @@ public class HomeView {
         // --- Use ONE TrafficLightController for all intersections ---
         TrafficLightController trafficLightController = new TrafficLightController();
 
-        initLights(trafficLightController);
 
         IntersectionEngine intersectionEngine = new IntersectionEngine(trafficLightController);
 
@@ -136,18 +135,6 @@ public class HomeView {
     }
 
 
-
-    public void initLights(TrafficLightController controller) {
-
-        if (northLight == null || southLight == null || eastLight == null || westLight == null) {
-            System.err.println("Lights not initialized yet; skipping update.");
-            return;
-        }
-        northLight.setFill(toColor(controller.getNorth().getState()));
-        southLight.setFill(toColor(controller.getSouth().getState()));
-        eastLight.setFill(toColor(controller.getEast().getState()));
-        westLight.setFill(toColor(controller.getWest().getState()));
-    }
 
     public void updateQueues(Map<String, Integer> queues) {
         System.out.println("Cars in queue: " + queues);
@@ -252,5 +239,8 @@ public class HomeView {
     }
     public List<LightSet> getIntersectionLights() {
         return intersectionLights;
+    }
+    public boolean getOpenedFromStartingView(){
+        return openedFromStartingView;
     }
 }
