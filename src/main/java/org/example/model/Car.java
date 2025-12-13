@@ -8,7 +8,6 @@ public class Car {
     private boolean waitingAtLight = false;
     private boolean waitingInBareIntersectionQueue = false;
     private int timesMoved = 0;
-
     public static void main(String[] args) {
         Car car = new Car(System.currentTimeMillis());
         try {

@@ -59,6 +59,7 @@ public class TrafficLightIntersection extends  Intersection {
         System.out.printf("%s STARTING TO PASS INTERSECTION at %.0f \n", name, (double) ClockTime());
 
         // Check which directions are green
+
         boolean nsGreen = north.getState() == TrafficLight.State.GREEN
                 || south.getState() == TrafficLight.State.GREEN;
         boolean ewGreen = east.getState() == TrafficLight.State.GREEN
@@ -94,6 +95,24 @@ public class TrafficLightIntersection extends  Intersection {
         }
 
         eventList.add(new Event(crossingTime, Event.EventType.DEPARTURE, new Departure(car, nsGreen, this), "Departure after service"));
+    }
+
+    public TrafficLight getNorthLight() { return north; }
+    public TrafficLight getSouthLight() { return south; }
+    public TrafficLight getEastLight()  { return east;  }
+    public TrafficLight getWestLight()  { return west;  }
+
+
+    public void setNorthLight(TrafficLight north) {
+    }
+
+    public void setSouthLight(TrafficLight south) {
+    }
+
+    public void setEastLight(TrafficLight east) {
+    }
+
+    public void setWestLight(TrafficLight west) {
     }
 
 
