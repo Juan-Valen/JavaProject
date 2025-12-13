@@ -7,10 +7,11 @@ public class Event implements Comparable<Event> {
         EXIT,
         LIGHT_CHANGE,
         QUEUE_ARRIVALS,
+        CHECK_LIGHT
     }
 
     private EventType type;
-    private final long time;
+    public final long time;
     private final Object payload;
     private String description;
 

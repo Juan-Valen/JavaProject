@@ -1,14 +1,34 @@
 package org.example.model;
 
-public final class TrafficLightChange {
-    private Intersection intersection;
+import org.example.framework.Event;
+import org.example.framework.EventList;
 
-    public TrafficLightChange(Intersection intersection) {
+public class TrafficLightChange {
+    private final TrafficLightIntersection intersection;
+
+    public TrafficLightChange(TrafficLightIntersection intersection) {
         this.intersection = intersection;
     }
 
-    public Intersection getIntersection() {
-        return intersection;
-    }
+    public void run(long now, EventList eventList) {
+        int delay = intersection.getTrafficLightController().changeLights();
 
+        // Schedule next light change
+        if (delay > 0) {
+            eventList.add(new Event(
+                    now + delay,
+                    Event.EventType.LIGHT_CHANGE,
+                    this,
+                    "Next traffic light change"
+            ));
+        }
+
+        // Check cars waiting at the light
+        eventList.add(new Event(
+                now,
+                Event.EventType.CHECK_LIGHT,
+                intersection,
+                "Check cars after light change"
+        ));
+    }
 }

@@ -1,13 +1,14 @@
 package org.example.view;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.example.controller.ConfigController;
 import org.example.framework.IntersectionEngine;
@@ -48,12 +49,13 @@ public class StartingView extends Application {
         intersection3.setItems(options);
         intersection4.setItems(options);
 
-        intersection1.setPromptText("First intersection");
-        intersection2.setPromptText("Second intersection");
-        intersection3.setPromptText("Third intersection");
-        intersection4.setPromptText("Fourth intersection");
+        // option values instead so every intersection has option set for it
+        intersection1.setPromptText(options.get(0));
+        intersection2.setPromptText(options.get(0));
+        intersection3.setPromptText(options.get(0));
+        intersection4.setPromptText(options.get(0));
 
-        HBox rootSelection = new HBox();
+        VBox rootSelection = new VBox();
         rootSelection.setSpacing(10);
         rootSelection.setPadding(new Insets(10));
         rootSelection.getChildren().addAll(intersection1, intersection2, intersection3, intersection4);
@@ -64,6 +66,9 @@ public class StartingView extends Application {
         intersection3.setOnAction(e -> recalculateIntersections());
         intersection4.setOnAction(e -> recalculateIntersections());
 
+        carsInMaxPerGroup = new TextField();
+        carsInMaxPerGroup.setPromptText("Cars in max per group: " + ((config.getConfigValues().get("carGroupAvgSize") != null) ? config.getConfigValues().get("carGroupAvgSize") : ""));
+        medianArrivalTime = new TextField();
 
         carsInMaxPerGroup.setPromptText("Cars in max per group: ");
         carsInMaxPerGroup.setText(String.valueOf((config.getConfigValues().get("carGroupAvgSize") != null) ? config.getConfigValues().get("carGroupAvgSize") : ""));
@@ -105,6 +110,8 @@ public class StartingView extends Application {
 
 
         });
+        Label label = new Label("Choose settings for at least one intersection before starting");
+        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, label, startButton);
 
         rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, simulationDuration, startButton);
 
@@ -137,7 +144,20 @@ public class StartingView extends Application {
     }
 
     public int getAmountOfIntersections() {
+        recalculateIntersections();
         return amountOfIntersections;
+    }
+    public List<String> getIntersectionModes() {
+        List<String> result = new ArrayList<>();
+        if (!"Don't show intersection".equals(intersection1.getValue()))
+            result.add(intersection1.getValue());
+        if (!"Don't show intersection".equals(intersection2.getValue()))
+            result.add(intersection2.getValue());
+        if (!"Don't show intersection".equals(intersection3.getValue()))
+            result.add(intersection3.getValue());
+        if (!"Don't show intersection".equals(intersection4.getValue()))
+            result.add(intersection4.getValue());
+        return result;
     }
 
     public List<String> getIntersections() {
@@ -198,6 +218,20 @@ public class StartingView extends Application {
     }
 
 
+    // getters for starting view car group and arrival inputs
+    public long getCarsInGroup() {
+        if (carsInMaxPerGroup == null || carsInMaxPerGroup.getText().isEmpty()) {
+            return 0;
+        }
+        return Long.parseLong(carsInMaxPerGroup.getText());
+    }
+
+    public long getMedianArrivalTime() {
+        if (medianArrivalTime == null || medianArrivalTime.getText().isEmpty()) {
+            return 0;
+        }
+        return Long.parseLong(medianArrivalTime.getText());
+    }
 
 }
 

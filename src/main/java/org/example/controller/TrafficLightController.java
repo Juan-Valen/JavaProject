@@ -6,6 +6,7 @@ import javafx.scene.shape.Circle;
 import org.example.framework.IntersectionEngine;
 import org.example.model.TrafficLight;
 import org.example.model.TrafficLightIntersection;
+import org.example.view.HomeView;
 
 import java.util.List;
 
@@ -25,13 +26,36 @@ public class TrafficLightController {
     private final TrafficLight west = new TrafficLight("WEST");
 
     private double cycleTime = 0.0;
+    private HomeView.LightSet uiLights;
 
+    public void setLightCircles(HomeView.LightSet lights) {
+        this.uiLights = lights;
+        refreshUI();
+
+    }
+
+    public void refreshUI() {
+        if (uiLights == null) return;
+
+        uiLights.north.setFill(toColor(north.getState()));
+        uiLights.south.setFill(toColor(south.getState()));
+        uiLights.east.setFill(toColor(east.getState()));
+        uiLights.west.setFill(toColor(west.getState()));
+    }
+
+    private Color toColor(TrafficLight.State state) {
+        return switch(state) {
+            case RED -> Color.RED;
+            case YELLOW -> Color.YELLOW;
+            case GREEN -> Color.GREEN;
+        };
+    }
     public void update(double seconds) {
         cycleTime += seconds;
 
         double greenDuration = 1;
         double yellowDuration = 0.5;
-        double phaseDuration = greenDuration + yellowDuration; // 7s per phase
+        double phaseDuration = greenDuration + yellowDuration;
 
         if (cycleTime < greenDuration) {
             // Phase 1: NS GREEN, EW RED

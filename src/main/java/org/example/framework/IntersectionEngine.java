@@ -7,6 +7,7 @@ import org.example.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -17,7 +18,7 @@ public class IntersectionEngine extends Engine{
     private TrafficLightIntersection intersection1;
 
     // List of all intersections
-    private List<Intersection> intersectionList = new ArrayList<>();
+    private List<TrafficLightIntersection> intersectionList = new ArrayList<>();
 
     // Event list
     private EventList el;
@@ -28,6 +29,9 @@ public class IntersectionEngine extends Engine{
     // Time program was paused
     private long pausedStart;
 
+    public void addToIntersectionList(TrafficLightIntersection intersection) {
+        intersectionList.add(intersection);
+    }
     // Total duration of pauses
     private long totalPausedDuration = 0;
 
@@ -134,15 +138,21 @@ public class IntersectionEngine extends Engine{
                 d.getIntersection().completeService(d, now, el);
             }
             case LIGHT_CHANGE -> {
+                System.out.println(">>> LIGHT_CHANGE EVENT FIRED at time " + e.getTime());
                 TrafficLightChange tlc = (TrafficLightChange) e.getPayload();
-                tlc.getIntersection().ChangeTrafficLights(now, el);
+                tlc.run(e.time, eventList);
             }
 
             case QUEUE_ARRIVALS -> {
                 QueueArrivals qa = (QueueArrivals) e.getPayload();
                 qa.getIntersection().queueArrivals(qa, now, el);
             }
-
+            case CHECK_LIGHT -> {
+                // This calls startPassingIntersection again,
+                // which will only move cars if their light is green
+                TrafficLightIntersection i = (TrafficLightIntersection) e.getPayload();
+                i.startPassingIntersection(now, eventList);
+            }
         }
     }
 
@@ -216,25 +226,52 @@ public class IntersectionEngine extends Engine{
         return intersection1;
     }
 
-    public List<Intersection> getIntersectionList(){
+    public List<TrafficLightIntersection> getIntersectionList(){
         return intersectionList;
     }
-
+/*
     public void setIntersections(List<String> intersectionTypeList) {
-        List<Intersection> tempIntersectionList = new ArrayList<>();
 
-        // Start from the last intersection type to build the chain backwards
-        switch (intersectionTypeList.get(intersectionTypeList.size()-1)) {
+        if (intersectionTypeList == null || intersectionTypeList.isEmpty()) {
+            System.err.println("ERROR: intersectionTypeList is null or empty");
+            return;
+        }
+
+        // Remove null or "Don't show intersection"
+        List<String> cleanedList = intersectionTypeList.stream()
+                .filter(Objects::nonNull)
+                .filter(s -> !s.equals("Don't show intersection"))
+                .toList();
+
+        if (cleanedList.isEmpty()) {
+            System.err.println("No valid intersections to create.");
+            return;
+        }
+
+        List<TrafficLightIntersection> tempIntersectionList = new ArrayList<>();
+
+        // Start from last valid intersection
+        String lastType = cleanedList.get(cleanedList.size() - 1);
+
+        switch (lastType) {
             case "Bare Intersection" -> {
-                BareIntersection bareIntersection = new BareIntersection("Intersection-" + (intersectionTypeList.size()-1), null, trafficLightController);
-                tempIntersectionList.add(bareIntersection);
+                BareIntersection bare = new BareIntersection(
+                        "Intersection-" + (cleanedList.size() - 1),
+                        null,
+                        trafficLightController
+                );
+                tempIntersectionList.add(bare);
             }
             case "Traffic Light Intersection" -> {
-                TrafficLightIntersection trafficLightIntersection = new TrafficLightIntersection("Intersection-" + (intersectionTypeList.size()-1), null,  trafficLightController);
-                tempIntersectionList.add(trafficLightIntersection);
+                TrafficLightIntersection tli = new TrafficLightIntersection(
+                        "Intersection-" + (cleanedList.size() - 1),
+                        null,
+                        trafficLightController
+                );
+                tempIntersectionList.add(tli);
             }
             default -> {
-                // Skip adding an intersection for "Don't show intersection"
+                System.err.println("Unknown intersection type: " + lastType);
             }
         }
 
@@ -264,6 +301,7 @@ public class IntersectionEngine extends Engine{
             intersectionList.add(tempIntersectionList.get(i));
         }
     }
+*/
 
 
     public static void main(String[] args) {
