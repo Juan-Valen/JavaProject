@@ -7,7 +7,6 @@ public class Car {
     static private int next = 0;
     private boolean waitingAtLight = false;
     private int timesMoved = 0;
-
     public static void main(String[] args) {
         Car car = new Car(System.currentTimeMillis());
         try {
@@ -72,7 +71,6 @@ public class Car {
     public void setWaitingAtLight(boolean waitingAtLight) {
         this.waitingAtLight = waitingAtLight;
     }
-
 
     @Override
     public String toString() {

@@ -1,6 +1,9 @@
 
 package org.example.controller;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.scene.paint.Color;
@@ -13,6 +16,7 @@ import org.example.model.Arrival;
 import org.example.model.Departure;
 
 
+import org.example.model.Intersection;
 import org.example.view.HomeView;
 
 import java.util.*;
@@ -23,36 +27,7 @@ public class SimulationController {
     private final Map<Car, Circle> carNodes = new HashMap<>();
     private Thread simulationThread;
 
-    private static final double ROAD_LENGTH = 290;
-    private static final int STEPS_TO_NEXT_INTERSECTION = 1;
-
-    // COORDINATES FOR CAR ANIMATION
-    private static final double START_X_N = 200;
-    private static final double START_Y_N = 0;
-    private static final double START_X_S = 80;
-    private static final double START_Y_S = 320;
-    private final double START_X_E = 700;
-    private static final double START_Y_E= 160;
-    private static final double START_X_W = 0;
-    private static final double START_Y_W = 320;
-
-    private static final double END_X_N = 200;
-    private static final double END_Y_N = 320;
-    private static final double END_X_S = 80;
-    private static final double END_Y_S = 0;
-    private static final double END_X_E = 0;
-    private static final double END_Y_E = 150;
-    private static final double END_X_W = 320;
-    private static final double END_Y_W = 80;
-
-    private static final double STOP_X_N = 200;
-    private static final double STOP_Y_N = 80;
-    private static final double STOP_X_S = 100;
-    private static final double STOP_Y_S = 80;
-    private static final double STOP_X_E = 500;
-    private static final double STOP_Y_E = 150;
-    private static final double STOP_X_W = 80;
-    private static final double STOP_Y_W = 80;
+    private static final double ROAD_LENGTH = 280;
 
 
     public SimulationController(IntersectionEngine engine, HomeView view) {
@@ -66,20 +41,113 @@ public class SimulationController {
             engine.runWithCallback(this::updateView);
         });
         simulationThread.start();
+        // checks the status of the lights every 50ms
+        Timeline lightRefresh = new Timeline(new KeyFrame(Duration.millis(50), e -> {
+            view.refreshTrafficLights();
+        }));
+        lightRefresh.setCycleCount(Animation.INDEFINITE);
+        lightRefresh.play();
     }
 
 
 
     private void updateView(Event event) {
-        Platform.runLater(() -> {
-            if (event.getType() == Event.EventType.ARRIVAL && event.getPayload() instanceof Arrival) {
-                Arrival arrival = (Arrival) event.getPayload();
-                Car car = arrival.car;
 
-                arrival.getIntersection();
+            if (event.getType() == Event.EventType.ARRIVAL && event.getPayload() instanceof Arrival) {
+                {
+                    Arrival arrival = (Arrival) event.getPayload();
+                    Intersection intersection = arrival.getIntersection();
+                    String name = intersection.getName();
+                    Circle carNode = new Circle(7, arrival.fromA ? Color.BLUE : Color.BLACK);
+                    TranslateTransition move = new TranslateTransition(Duration.millis(300), carNode);
+                    view.addCarNode(carNode); // Add to UI
+                    carNodes.put(arrival.car, carNode); // Add to list for departure
+
+                    // ARRIVAL FROM A -> tracked cars -> horizontal movement
+                    if (arrival.fromA) {
+                        double startY = 200;
+                        int intersectionIdx = Integer.parseInt(name.split("-")[1]); // 0-3
+                        double startX = -170 + (intersectionIdx) * ROAD_LENGTH;
+                        carNode.setLayoutX(startX);
+                        carNode.setLayoutY(startY);
+                        // Reset any previous translation
+                        carNode.setTranslateX(0);
+                        carNode.setTranslateY(0);
+                        // Animate one road segment
+                        move.setByX(ROAD_LENGTH);
+                        move.play()
+                        ;
+                    }
+                    // ARRIVAL not from A -> untracked cars -> vertical movement
+                    else {
+                        double startY = -170;
+                        int intersectionIdx = Integer.parseInt(name.split("-")[1]);
+                        double startX = 160 + (intersectionIdx) * ROAD_LENGTH;
+                        carNode.setLayoutX(startX);
+                        carNode.setLayoutY(startY);
+                        // Reset any previous translation
+                        carNode.setTranslateX(0);
+                        carNode.setTranslateY(0);
+                        // Animate one road segment
+                        move.setByY(ROAD_LENGTH);
+                        move.play();
+                    }
+                }
+
             }
-        });
-    }
+
+            else if (event.getType() == Event.EventType.DEPARTURE && event.getPayload() instanceof Departure) {
+                Departure departure = (Departure) event.getPayload();
+                Car car = departure.car;
+                Intersection intersection = departure.getIntersection();
+                String name = intersection.getName();
+
+                // fetch existing node
+                Circle carNode = carNodes.get(car);
+                if (carNode == null) {
+                    System.out.println("Did not find carNode in Simulation Controller:: 143");
+                    return;
+                }
+                TranslateTransition move = new TranslateTransition(Duration.millis(300), carNode);
+
+                // horizontal
+                if (departure.fromA) {
+                    double startY = 200;
+                    int intersectionIdx = Integer.parseInt(name.split("-")[1]); // 0-3 for some reason
+                    double startX = 110 + (intersectionIdx) * ROAD_LENGTH;
+
+                    carNode.setLayoutX(startX);
+                    carNode.setLayoutY(startY);
+                    // Reset any previous translation
+                    carNode.setTranslateX(0);
+                    carNode.setTranslateY(0);
+                    // Animate one road segment
+                    move.setByX(ROAD_LENGTH);
+
+                    // +1, don't know why, but it works
+                    if (intersectionIdx +1  == view.getAmountOfIntersections()) {
+                        move.setOnFinished(e -> view.removeCarNode(carNode));
+                    }
+                    move.play();
+                }
+
+                // vertical
+                else {
+                    double startY = 110;
+                    int intersectionIdx = Integer.parseInt(name.split("-")[1]);
+                    double startX = 160 + (intersectionIdx) * ROAD_LENGTH;
+                    carNode.setLayoutX(startX);
+                    carNode.setLayoutY(startY);
+                    // Reset any previous translation
+                    carNode.setTranslateX(0);
+                    carNode.setTranslateY(0);
+                    // Animate one road segment
+                    move.setByY(ROAD_LENGTH);
+                    move.setOnFinished(e -> view.removeCarNode(carNode));
+                    move.play();
+                }
+            }
+        }
     public IntersectionEngine getEngine() {
         return engine;
     }

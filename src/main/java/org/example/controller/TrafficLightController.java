@@ -22,9 +22,10 @@ public class TrafficLightController {
 
 
     private void updateUI() {
-        if (homeView != null) {
-            Platform.runLater(() -> homeView.refreshTrafficLights());
-        }
+        System.out.println("update ui");
+      //  if (homeView != null) {
+     //       Platform.runLater(() -> homeView.refreshTrafficLights());
+      //  }
     }
     public void setHomeView(HomeView homeView) {
         this.homeView = homeView;

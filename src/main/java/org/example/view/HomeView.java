@@ -121,7 +121,9 @@ public class HomeView {
         if(intersectionEngine == null){
             return;
         }
-        List<Intersection> intersections = intersectionEngine.getIntersectionList();
+        Platform.runLater(() -> { // <-- ensures UI updates happen on JavaFX thread
+
+            List<Intersection> intersections = intersectionEngine.getIntersectionList();
         int lightIndex = 0; // separate index for intersectionLights
 
         for (int i = 0; i < intersections.size(); i++) {
@@ -139,6 +141,7 @@ public class HomeView {
                 lightIndex++; // only increment when you have a traffic light intersection
             }
         }
+        });
     }
     private int getIntersectionIndex(TrafficLightIntersection intersection) {
         for (int i = 0; i < intersectionLights.size(); i++) {
@@ -156,6 +159,12 @@ public class HomeView {
 
     public void addCarNode(Circle carShape) {
         intersectionPane.getChildren().add(carShape);
+    }
+    public void removeCarNode(Circle carNode) {
+        if (carNode == null) return;
+        Platform.runLater(() -> {
+            intersectionPane.getChildren().remove(carNode);
+        });
     }
 
     public Pane buildIntersection(int index, String typeofIntersection ,IntersectionEngine intersectionEngine){
@@ -214,10 +223,8 @@ public class HomeView {
     }
 
     public double getAmountOfIntersections(){
-        if(startingView == null){
-            return 0;
-        }
-        return startingView.getAmountOfIntersections();
+            return intersectionEngine.getIntersectionList().size();
+
     }
       
           // getter: slider values (double)

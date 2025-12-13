@@ -74,7 +74,9 @@ public class Intersection {
         Normal dist = IntersectionEngine.getCarGroupSizeDist();
         for (int i = 0; i < round(dist.sample()); i++) {
             eventList.add(new Event(now+i, Event.EventType.ARRIVAL, new Arrival(new Car(now+i), qa.queueA, this), "Arrival of Car at time: " + (now+i) + " to intersection " + name + " from direction B"));
+            if(this.getName().equals("Intersection-4")){
 
+            }
             if (qa.queueA) {
                 IntersectionEngine.getCarsSent().incrementAndGet();
             }
