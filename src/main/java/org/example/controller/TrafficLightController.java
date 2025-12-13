@@ -2,8 +2,8 @@ package org.example.controller;
 
 
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
-import org.example.framework.IntersectionEngine;
 import org.example.model.TrafficLight;
 import org.example.view.HomeView;
 
@@ -11,12 +11,14 @@ import java.util.List;
 
 public class TrafficLightController {
 
-    IntersectionEngine intersectionEngine;
-
 //    delay after green light changes to yellow
     private static int greenDelay;
 //    delay after yellow light changes to red
     private static int yellowDelay;
+    private Circle northLight;
+    private Circle southLight;
+    private Circle eastLight;
+    private Circle westLight;
 
 
     private final TrafficLight north = new TrafficLight("NORTH");
@@ -25,22 +27,14 @@ public class TrafficLightController {
     private final TrafficLight west = new TrafficLight("WEST");
 
     private double cycleTime = 0.0;
-    private HomeView.LightSet uiLights;
-
-    public void setLightCircles(HomeView.LightSet lights) {
-        this.uiLights = lights;
-        refreshUI();
-
-    }
 
     public void refreshUI() {
-        if (uiLights == null) return;
-
-        uiLights.north.setFill(toColor(north.getState()));
-        uiLights.south.setFill(toColor(south.getState()));
-        uiLights.east.setFill(toColor(east.getState()));
-        uiLights.west.setFill(toColor(west.getState()));
+        updateLightColor(northLight, north.getState());
+        updateLightColor(southLight, south.getState());
+        updateLightColor(eastLight, east.getState());
+        updateLightColor(westLight, west.getState());
     }
+
 
     private Color toColor(TrafficLight.State state) {
         return switch(state) {
@@ -49,43 +43,8 @@ public class TrafficLightController {
             case GREEN -> Color.GREEN;
         };
     }
-    public void update(double seconds) {
-        cycleTime += seconds;
 
-        double greenDuration = 1;
-        double yellowDuration = 0.5;
-        double phaseDuration = greenDuration + yellowDuration;
-
-        if (cycleTime < greenDuration) {
-            // Phase 1: NS GREEN, EW RED
-            north.setState(TrafficLight.State.GREEN);
-            south.setState(TrafficLight.State.GREEN);
-            east.setState(TrafficLight.State.RED);
-            west.setState(TrafficLight.State.RED);
-        } else if (cycleTime < phaseDuration) {
-            // Phase 1 YELLOW: NS YELLOW, EW RED
-            north.setState(TrafficLight.State.YELLOW);
-            south.setState(TrafficLight.State.YELLOW);
-            east.setState(TrafficLight.State.RED);
-            west.setState(TrafficLight.State.RED);
-        } else if (cycleTime < phaseDuration + greenDuration) {
-            // Phase 2: EW GREEN, NS RED
-            north.setState(TrafficLight.State.RED);
-            south.setState(TrafficLight.State.RED);
-            east.setState(TrafficLight.State.GREEN);
-            west.setState(TrafficLight.State.GREEN);
-        } else if (cycleTime < phaseDuration * 2) {
-            // Phase 2 YELLOW: EW YELLOW, NS RED
-            north.setState(TrafficLight.State.RED);
-            south.setState(TrafficLight.State.RED);
-            east.setState(TrafficLight.State.YELLOW);
-            west.setState(TrafficLight.State.YELLOW);
-        } else {
-            cycleTime = 0; // restart cycle
-        }
-    }
-
-    // Add specific intersection control later
+    // Intersection has it's own trafficLightController
     // Checks current states and changes accordingly, returns integer used as the delay for next change. Integer defined at the top of the class.
     public int changeLights() {
         // If everything is RED, start with NS green
@@ -204,5 +163,16 @@ public class TrafficLightController {
         TrafficLightController.yellowDelay = yellowDelay;
     }
 
+    public void setLights(
+            Circle north,
+            Circle south,
+            Circle east,
+            Circle west
+    ) {
 
+    }
+
+
+    public void setLightCircles(HomeView.LightSet lightSet) {
+    }
 }

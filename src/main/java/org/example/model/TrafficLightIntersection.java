@@ -23,6 +23,7 @@ public class TrafficLightIntersection extends  Intersection {
         this.south = new TrafficLight("SOUTH");
         this.east = new TrafficLight("EAST");
         this.west = new TrafficLight("WEST");
+        this.controller = controller;
     }
 
     @Override
@@ -51,22 +52,9 @@ public class TrafficLightIntersection extends  Intersection {
                 "Check cars after light change"
         ));
     }
-    public void changeLights() {
 
-        this.north.setState(controller.getNorthState());
-        this.south.setState(controller.getSouthState());
-        this.east.setState(controller.getEastState());
-        this.west.setState(controller.getWestState());
-    }
 
     public void handleArrival(Arrival a) {
-        EventList eventList = a.eventList;
-        eventList.add(new Event(
-                ClockTime(),
-                Event.EventType.CHECK_LIGHT,
-                this,
-                "Car arrived, check lights immediately"
-        ));
 
         if (a.fromA) {
             if (!queueA.isEmpty() || trafficLightController.getWestState() == TrafficLight.State.RED) {
@@ -153,6 +141,5 @@ public class TrafficLightIntersection extends  Intersection {
     public void setWestLight(TrafficLight west) {
     }
 
-    public void setLightSet(HomeView.LightSet lights) {
-    }
+
 }

@@ -93,7 +93,7 @@ public class IntersectionEngine extends Engine{
     protected void initialize() {
         getTrafficLightController().setGreenDelay(greendelay);
         getTrafficLightController().setYellowDelay(yellowdelay);
-
+        System.out.println("All intersections: "+ intersectionList.size());
         el = eventList;
 
         // schedule initial QUEUE_ARRIVALS events for direction A
@@ -108,7 +108,7 @@ public class IntersectionEngine extends Engine{
         // schedule initial traffic light change
         for (Intersection intersection : intersectionList) {
             if (intersection instanceof TrafficLightIntersection) {
-                el.add(new Event(600, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection), "Initial Traffic Light Change Event for: " + intersection.getName()));
+                el.add(new Event(200, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection), "Initial Traffic Light Change Event for: " + intersection.getName()));
             }
         }
 
@@ -341,6 +341,14 @@ public class IntersectionEngine extends Engine{
 
     public synchronized double getSimulationSpeed() {
         return simulationSpeed;
+    }
+
+    public EventList getEventList(){
+        return el;
+    }
+
+    public void addToIntersectionList(Intersection intersection){
+        intersectionList.add(intersection);
     }
 
 

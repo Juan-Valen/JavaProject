@@ -4,12 +4,12 @@ import org.example.framework.Event;
 import org.example.framework.EventList;
 
 public class TrafficLightChange {
-    private final TrafficLightIntersection intersection;
+    private final Intersection intersection;
 
-    public TrafficLightChange(TrafficLightIntersection intersection) {
+    public TrafficLightChange(Intersection intersection) {
         this.intersection = intersection;
     }
-
+/// ///// NOT USED
     public void run(long now, EventList eventList) {
         int delay = intersection.getTrafficLightController().changeLights();
 
@@ -30,5 +30,9 @@ public class TrafficLightChange {
                 intersection,
                 "Check cars after light change"
         ));
+    }
+
+    public Intersection getIntersection() {
+        return intersection;
     }
 }

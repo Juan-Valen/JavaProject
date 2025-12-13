@@ -118,6 +118,7 @@ public class StartingView extends Application {
         });
     }
 
+
     /** Recalculate number of intersections based on current selections */
     private void recalculateIntersections() {
         amountOfIntersections = 0;
@@ -176,13 +177,13 @@ public class StartingView extends Application {
             configValues.put("avgCarArrivalInterval", medianArrivalTimeVal);
         }
 
-        if (homeView.getOpenedFromStartingView()) {
+      //  if (homeView.getOpenedFromStartingView()) {
             System.out.println("Saving time between intersections: " + Math.round(homeView.getTimeBetweenValue()));
         configValues.put("betweenIntersectionTime" , Math.round(homeView.getTimeBetweenValue()));
-        }
-        if (homeView.getOpenedFromStartingView()) {
+       // }
+       // if (homeView.getOpenedFromStartingView()) {
         configValues.put("carReactionTime" , Math.round(homeView.getCarReactionTime()));
-        }
+       // }
 
         ConfigController.setConfigValues(configValues);
 
