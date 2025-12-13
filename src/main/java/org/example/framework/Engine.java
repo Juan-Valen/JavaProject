@@ -4,7 +4,7 @@ package org.example.framework;
 public abstract class Engine {
     private static final String RED = "\033[0;31m"; // https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
     private static final String WHITE = "\033[0;37m"; // ANSI escape code for white color
-    private double simulationTime = 0;
+    private static double simulationTime = 0;
     protected EventList eventList;
 
     public Engine() {
@@ -12,15 +12,15 @@ public abstract class Engine {
         // Service Points are created in the subclass
     }
 
-    public void setSimulationTime(double simulationTime) {
-        this.simulationTime = simulationTime;
+    public static void setSimulationTime(double simulationTime) {
+        Engine.simulationTime = simulationTime;
     }
 
-    public double getSimulationTime() {
+    public static double getSimulationTime() {
         return simulationTime;
     }
 
-    public long getRemainingSimulationTime() {
+    public static long getRemainingSimulationTime() {
         return (long)Math.max(0, getSimulationTime() - Clock.getInstance().getClock());
     }
 

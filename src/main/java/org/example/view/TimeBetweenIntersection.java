@@ -8,7 +8,7 @@ import org.example.framework.IntersectionEngine;
 
 public class TimeBetweenIntersection extends HBox {
 
-    private static final Slider slider = new Slider(1, 600, 2); // min, max, initial
+    private static final Slider slider = new Slider(1, 600, 120); // min, max, initial
     private final Label valueLabel = new Label();
 
     public TimeBetweenIntersection() {

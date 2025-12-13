@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import org.example.framework.IntersectionEngine;
 import org.example.view.HomeView;
 
 // Hooks UI to simulation
@@ -24,7 +25,7 @@ public class HomeController {
 
     public void addTime(String time) {
         double addedTime = Double.parseDouble(time);
-        simulationController.getEngine().setSimulationTime(addedTime);
+        IntersectionEngine.setSimulationTime(addedTime);
     }
 
 

@@ -6,6 +6,7 @@ public class Car {
     private long endTime;
     static private int next = 0;
     private boolean waitingAtLight = false;
+    private boolean waitingInBareIntersectionQueue = false;
     private int timesMoved = 0;
 
     public static void main(String[] args) {
@@ -71,6 +72,14 @@ public class Car {
 
     public void setWaitingAtLight(boolean waitingAtLight) {
         this.waitingAtLight = waitingAtLight;
+    }
+
+    public boolean isWaitingInBareIntersectionQueue() {
+        return waitingInBareIntersectionQueue;
+    }
+
+    public void setWaitingInBareIntersectionQueue(boolean waitingInBareIntersectionQueue) {
+        this.waitingInBareIntersectionQueue = waitingInBareIntersectionQueue;
     }
 
 

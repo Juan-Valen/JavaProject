@@ -25,8 +25,10 @@ public class StartingView extends Application {
     ComboBox<String> intersection3 = new ComboBox<>();
     ComboBox<String> intersection4 = new ComboBox<>();
     private int amountOfIntersections = 4; // default
-    private TextField carsInMaxPerGroup;
-    private TextField medianArrivalTime;
+
+    TextField carsInMaxPerGroup = new TextField();
+    TextField medianArrivalTime = new TextField();
+    TextField simulationDuration = new TextField();
 
     HomeView homeView = new HomeView();
 
@@ -73,6 +75,9 @@ public class StartingView extends Application {
 
         medianArrivalTime.setPromptText("Median arrival time (s): ");
         medianArrivalTime.setText(String.valueOf((config.getConfigValues().get("avgCarArrivalInterval") != null) ? config.getConfigValues().get("avgCarArrivalInterval") : ""));
+
+        simulationDuration.setPromptText("Simulation time (s): ");
+        simulationDuration.setText(String.valueOf((config.getConfigValues().get("simulationDuration") != null) ? config.getConfigValues().get("simulationDuration") : ""));
   
         TextField timeBetweenIntersection = new TextField();
         timeBetweenIntersection.setPromptText("Time between intersections for a car");
@@ -82,6 +87,13 @@ public class StartingView extends Application {
 
         Button startButton = new Button("Start Simulation");
         startButton.setOnAction(e -> {
+            // set intersection engine parameters
+            IntersectionEngine.setCarArrivalIntervalDist(Integer.parseInt(medianArrivalTime.getText()));
+
+            IntersectionEngine.setCarGroupSizeDist(Integer.parseInt(carsInMaxPerGroup.getText()));
+
+            IntersectionEngine.setSimulationDuration(Integer.parseInt(simulationDuration.getText()));
+
             Scene homeScene = homeView.buildScene(this, getIntersections()); // pass StartingView
 
             // set saved values from starting view to home view sliders
@@ -97,17 +109,18 @@ public class StartingView extends Application {
             stage.sizeToScene();
 
 
-
-            // set intersection engine parameters
-            IntersectionEngine.setCarArrivalIntervalDist(Integer.parseInt(medianArrivalTime.getText()));
-
-            IntersectionEngine.setCarGroupSizeDist(Integer.parseInt(carsInMaxPerGroup.getText()));
         });
         Label label = new Label("Choose settings for at least one intersection before starting");
         rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, label, startButton);
 
-        Scene scene = new Scene(rootSelection, 400, 500);
+        rootSelection.getChildren().addAll(carsInMaxPerGroup, medianArrivalTime, simulationDuration, startButton);
+
+//        Scene scene = new Scene(rootSelection, 1100, 1000);
+        Scene scene = new Scene(rootSelection);
         stage.setScene(scene);
+
+        stage.sizeToScene();
+
         stage.setTitle("Intersection Simulator");
         stage.show();
 
@@ -182,11 +195,13 @@ public class StartingView extends Application {
         System.out.println("Application is stopping, saving configuration...");
         HashMap<String, Long> configValues = new HashMap<>();
         // add any config values you want to save here
-        if (!carsInMaxPerGroup.getText().isEmpty() && !medianArrivalTime.getText().isEmpty()) {
+        if (!carsInMaxPerGroup.getText().isEmpty() && !medianArrivalTime.getText().isEmpty() && !simulationDuration.getText().isEmpty()) {
             long carsInGroup = Long.parseLong(carsInMaxPerGroup.getText());
             long medianArrivalTimeVal = Long.parseLong(medianArrivalTime.getText());
+            long simDuration = Long.parseLong(simulationDuration.getText());
             configValues.put("carGroupAvgSize", carsInGroup);
             configValues.put("avgCarArrivalInterval", medianArrivalTimeVal);
+            configValues.put("simulationDuration", simDuration);
         }
 
         if (homeView.getOpenedFromStartingView()) {

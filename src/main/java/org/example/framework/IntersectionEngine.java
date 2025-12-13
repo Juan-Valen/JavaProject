@@ -86,12 +86,12 @@ public class IntersectionEngine extends Engine{
     private static int avgReactionTime = 20; // average time for driver to react and accelerate when light turns green or other car gives way
 
     private static Normal carGroupSizeDist = new Normal((double) maxCarGroupSize /2, (double) maxCarGroupSize /2); // average size of car groups arriving
-    private static Normal driverReactionTimeDist = new Normal((double)avgReactionTime, (double)avgReactionTime); // average driver reaction time before starting to pass intersection
-    private static Normal carArrivalIntervalDist = new Normal((double) avgArrivalInterval, (double) avgArrivalInterval); // average arrival interval for car groups
+    private static Normal driverReactionTimeDist = new Normal(avgReactionTime, avgReactionTime); // average driver reaction time before starting to pass intersection
+    private static Normal carArrivalIntervalDist = new Normal(avgArrivalInterval, avgArrivalInterval); // average arrival interval for car groups
 
 
-    private int greendelay = 30; // seconds after next light change after turning green
-    private int yellowdelay = 6; // seconds after next light change after turning yellow
+    private int greendelay = 50; // seconds after next light change after turning green
+    private int yellowdelay = 10; // seconds after next light change after turning yellow
 
     @Override
     protected void initialize() {
@@ -109,17 +109,20 @@ public class IntersectionEngine extends Engine{
             el.add(new Event(45, Event.EventType.QUEUE_ARRIVALS, new QueueArrivals(intersection, false), "Initial QUEUE_ARRIVALS Event for direction B at " + intersection.getName()));
         }
 
-        // schedule initial traffic light change
-        for (TrafficLightIntersection intersection : intersectionList) {
-            if (intersection != null) {
-                el.add(new Event(200, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection), "Initial Traffic Light Change Event for: " + intersection.getName()));
+        int light_delay = 50;
+        for (Intersection intersection : intersectionList) {
+            if (intersection instanceof TrafficLightIntersection) {
+
+                //set initial traffic light states
+                trafficLightController.setNSGreen((TrafficLightIntersection) intersection);
+
+                // schedule initial traffic light change
+                el.add(new Event(light_delay, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection), "Initial Traffic Light Change Event for: " + intersection.getName()));
+
+                light_delay += 25; // stagger initial light changes for multiple intersections
             }
         }
 
-        //set initial traffic light states
-        trafficLightController.setNSGreen();
-
-        setSimulationTime(100000);
     }
 
     @Override
@@ -321,8 +324,8 @@ public class IntersectionEngine extends Engine{
     }
 
 
-    public void setSimulationTime(double addedTime) {
-        super.setSimulationTime(this.getSimulationTime()+addedTime);
+    public static void setSimulationTime(double addedTime) {
+        Engine.setSimulationTime(getSimulationTime()+addedTime);
         System.out.println("Remaining simulation time: "+ getRemainingSimulationTime());
     }
 
@@ -381,8 +384,13 @@ public class IntersectionEngine extends Engine{
         return simulationSpeed;
     }
 
-    public EventList getEventList(){
-        return el;
+    public static void setSimulationDuration(int duration) {
+        if (duration <= 0) {
+            throw new IllegalArgumentException("duration must be > 0");
+        }
+        System.out.println("Setting simulation duration to " + duration + " seconds.");
+        setSimulationTime(duration);
     }
+
 
 }

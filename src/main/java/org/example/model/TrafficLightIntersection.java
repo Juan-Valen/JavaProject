@@ -9,12 +9,11 @@ import org.example.view.HomeView;
 import java.util.LinkedList;
 
 public class TrafficLightIntersection extends  Intersection {
-    private TrafficLight north;
-    private TrafficLight south;
-    private TrafficLight east;
-    private TrafficLight west;
-    private TrafficLightController controller;
 
+    public final TrafficLight north = new TrafficLight("NORTH");
+    public final TrafficLight south = new TrafficLight("SOUTH");
+    public final TrafficLight east = new TrafficLight("EAST");
+    public final TrafficLight west = new TrafficLight("WEST");
 
     public TrafficLightIntersection(String name, Intersection next, TrafficLightController controller) {
 
@@ -29,18 +28,11 @@ public class TrafficLightIntersection extends  Intersection {
     public void ChangeTrafficLights(long now, EventList eventList) {
         System.out.println("---------- ChangeTrafficLights: ------");
         System.out.printf("%s CHANGING TRAFFIC LIGHTS at %.0f \n", name, (double) ClockTime());
-
-        // Update light states
-        int timeToNext =this.trafficLightController.changeLights();
-
-        // Schedule next light change
-        if (timeToNext > 0) {
-            eventList.add(new Event(
-                    now + timeToNext,
-                    Event.EventType.LIGHT_CHANGE,
-                    new TrafficLightChange(this),
-                    "Traffic Light Change Event for: " + this.name
-            ));
+        int timeToNext = trafficLightController.changeLights(this);
+        // schedule next light change
+        //changeLights returns 0 if light is somehow not red, green, or yellow
+        if (timeToNext != 0) {
+            eventList.add(new Event(now + timeToNext, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(this), "Traffic Light Change Event for: " + this.name) );
         }
 
         // Immediately check if any cars can move after the light change
@@ -60,13 +52,6 @@ public class TrafficLightIntersection extends  Intersection {
     }
 
     public void handleArrival(Arrival a) {
-        EventList eventList = a.eventList;
-        eventList.add(new Event(
-                ClockTime(),
-                Event.EventType.CHECK_LIGHT,
-                this,
-                "Car arrived, check lights immediately"
-        ));
 
         if (a.fromA) {
             if (!queueA.isEmpty() || trafficLightController.getWestState() == TrafficLight.State.RED) {
@@ -74,7 +59,7 @@ public class TrafficLightIntersection extends  Intersection {
             }
             queueA.addLast(a.car);
         } else {
-            if (!queueB.isEmpty() || trafficLightController.getEastState() == TrafficLight.State.RED) {
+            if (!queueB.isEmpty() || east.getState() == TrafficLight.State.RED) {
                 a.car.setWaitingAtLight(true);
             }
             queueB.addLast(a.car);
@@ -85,11 +70,16 @@ public class TrafficLightIntersection extends  Intersection {
                 name, a.car, a.fromA ? "A" : "B", (double) ClockTime());
         System.out.println("QueueA size: " + queueA.size() + ", QueueB size: " + queueB.size());
     }
+  
     @Override
     public void startPassingIntersection(long now, EventList eventList) {
         if (busy) return;
 
-        boolean moved = false;
+        // Check which directions are green
+        boolean nsGreen = north.getState() == TrafficLight.State.GREEN
+                || south.getState() == TrafficLight.State.GREEN;
+        boolean ewGreen = east.getState() == TrafficLight.State.GREEN
+                || west.getState() == TrafficLight.State.GREEN;
 
         // NS direction
         if (!queueA.isEmpty() && trafficLightController.getNorthState() == TrafficLight.State.GREEN) {
@@ -122,37 +112,22 @@ public class TrafficLightIntersection extends  Intersection {
 
         long timeToPass = now + IntersectionEngine.getTimeToCrossIntersection();
         long extra = 0;
+        long crossingTime;
 
         if (car.isWaitingAtLight()) {
             car.setWaitingAtLight(false);
             extra = (long) IntersectionEngine.getDriverReactionTimeDist().sample();
         }
 
-        long crossingTime = timeToPass + extra;
+        if (extra > 0) {
+            crossingTime = timeToPass + extra;
+        }
+        else {
+            crossingTime = timeToPass;
+        }
 
-        eventList.add(new Event(crossingTime, Event.EventType.DEPARTURE, new Departure(car, fromA, this),
-                "Departure after service"));
-
-        // Update UI immediately or via Platform.runLater() in departure handler
-    }
-    public TrafficLight getNorthLight() { return north; }
-    public TrafficLight getSouthLight() { return south; }
-    public TrafficLight getEastLight()  { return east;  }
-    public TrafficLight getWestLight()  { return west;  }
-
-
-    public void setNorthLight(TrafficLight north) {
+        eventList.add(new Event(crossingTime, Event.EventType.DEPARTURE, new Departure(car, nsGreen, this), "Departure after service"));
     }
 
-    public void setSouthLight(TrafficLight south) {
-    }
 
-    public void setEastLight(TrafficLight east) {
-    }
-
-    public void setWestLight(TrafficLight west) {
-    }
-
-    public void setLightSet(HomeView.LightSet lights) {
-    }
 }

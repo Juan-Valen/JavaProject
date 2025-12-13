@@ -5,6 +5,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import org.example.framework.IntersectionEngine;
 import org.example.model.TrafficLight;
+import org.example.model.TrafficLightIntersection;
 import org.example.view.HomeView;
 
 import java.util.List;
@@ -87,46 +88,41 @@ public class TrafficLightController {
 
     // Add specific intersection control later
     // Checks current states and changes accordingly, returns integer used as the delay for next change. Integer defined at the top of the class.
-    public int changeLights() {
-        // If everything is RED, start with NS green
-        if (north.getState() == TrafficLight.State.RED && east.getState() == TrafficLight.State.RED) {
-            setNSGreen();
-            refreshUI();
-            return greenDelay;  // schedule next change
-        }
-        switch (north.getState()) {
+    public int changeLights(TrafficLightIntersection intersection) {
+
+        switch (intersection.north.getState()) {
             case GREEN ->  {
-                north.setState(TrafficLight.State.YELLOW);
-                south.setState(TrafficLight.State.YELLOW);
-                east.setState(TrafficLight.State.RED);
-                west.setState(TrafficLight.State.RED);
-                refreshUI();
+                intersection.north.setState(TrafficLight.State.YELLOW);
+                intersection.south.setState(TrafficLight.State.YELLOW);
+                intersection.east.setState(TrafficLight.State.RED);
+                intersection.west.setState(TrafficLight.State.RED);
+
                 return greenDelay;
             }
             case YELLOW -> {
-                north.setState(TrafficLight.State.RED);
-                south.setState(TrafficLight.State.RED);
-                east.setState(TrafficLight.State.GREEN);
-                west.setState(TrafficLight.State.GREEN);
-                refreshUI();
+                intersection.north.setState(TrafficLight.State.RED);
+                intersection.south.setState(TrafficLight.State.RED);
+                intersection.east.setState(TrafficLight.State.GREEN);
+                intersection.west.setState(TrafficLight.State.GREEN);
+
                 return yellowDelay;
             }
             case RED -> {
-                switch (east.getState()) {
+                switch (intersection.east.getState()) {
                     case GREEN -> {
-                        north.setState(TrafficLight.State.RED);
-                        south.setState(TrafficLight.State.RED);
-                        east.setState(TrafficLight.State.YELLOW);
-                        west.setState(TrafficLight.State.YELLOW);
-                        refreshUI();
+                        intersection.north.setState(TrafficLight.State.RED);
+                        intersection.south.setState(TrafficLight.State.RED);
+                        intersection.east.setState(TrafficLight.State.YELLOW);
+                        intersection.west.setState(TrafficLight.State.YELLOW);
+
                         return greenDelay;
                     }
                     case YELLOW -> {
-                        north.setState(TrafficLight.State.GREEN);
-                        south.setState(TrafficLight.State.GREEN);
-                        east.setState(TrafficLight.State.RED);
-                        west.setState(TrafficLight.State.RED);
-                        refreshUI();
+                        intersection.north.setState(TrafficLight.State.GREEN);
+                        intersection.south.setState(TrafficLight.State.GREEN);
+                        intersection.east.setState(TrafficLight.State.RED);
+                        intersection.west.setState(TrafficLight.State.RED);
+
                         return yellowDelay;
                     }
                 }
@@ -136,18 +132,18 @@ public class TrafficLightController {
         return 0; // should never reach here
     }
 
-    public void setNSGreen() {
-        north.setState(TrafficLight.State.GREEN);
-        south.setState(TrafficLight.State.GREEN);
-        east.setState(TrafficLight.State.RED);
-        west.setState(TrafficLight.State.RED);
+    public void setNSGreen(TrafficLightIntersection intersection) {
+        intersection.north.setState(TrafficLight.State.GREEN);
+        intersection.south.setState(TrafficLight.State.GREEN);
+        intersection.east.setState(TrafficLight.State.RED);
+        intersection.west.setState(TrafficLight.State.RED);
     }
 
-    public void setEWGreen() {
-        north.setState(TrafficLight.State.RED);
-        south.setState(TrafficLight.State.RED);
-        east.setState(TrafficLight.State.GREEN);
-        west.setState(TrafficLight.State.GREEN);
+    public void setEWGreen(TrafficLightIntersection intersection) {
+        intersection.north.setState(TrafficLight.State.RED);
+        intersection.south.setState(TrafficLight.State.RED);
+        intersection.east.setState(TrafficLight.State.GREEN);
+        intersection.west.setState(TrafficLight.State.GREEN);
     }
 
     public List<TrafficLight> getLights() {
