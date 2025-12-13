@@ -201,7 +201,7 @@ public class HomeView {
     }
 
     public double getCarReactionTime() {
-        return carReactionTime.getReactionTime();
+        return CarReactionTime.getReactionTime();
     }
 
     public boolean getOpenedFromStartingView(){

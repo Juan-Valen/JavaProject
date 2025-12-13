@@ -10,6 +10,11 @@ import java.util.LinkedList;
 public class TrafficLightIntersection extends  Intersection {
     String lastPassedDirection;
 
+    public final TrafficLight north = new TrafficLight("NORTH");
+    public final TrafficLight south = new TrafficLight("SOUTH");
+    public final TrafficLight east = new TrafficLight("EAST");
+    public final TrafficLight west = new TrafficLight("WEST");
+
     public TrafficLightIntersection(String name, Intersection next, TrafficLightController controller) {
         super(name, next, controller);
     }
@@ -19,7 +24,7 @@ public class TrafficLightIntersection extends  Intersection {
         System.out.println(" ");
         System.out.println("---------- ChangeTrafficLights: ------");
         System.out.printf("%s CHANGING TRAFFIC LIGHTS at %.0f \n", name, (double) ClockTime());
-        int timeToNext = trafficLightController.changeLights();
+        int timeToNext = trafficLightController.changeLights(this);
         // schedule next light change
         //changeLights returns 0 if light is somehow not red, green, or yellow
         if (timeToNext != 0) {
@@ -29,14 +34,13 @@ public class TrafficLightIntersection extends  Intersection {
 
     public void handleArrival(Arrival a) {
 
-
         if (a.fromA) {
-            if (!queueA.isEmpty() || trafficLightController.getNorthState() == TrafficLight.State.RED) {
+            if (!queueA.isEmpty() || north.getState() == TrafficLight.State.RED) {
                 a.car.setWaitingAtLight(true);
             }
             queueA.addLast(a.car);
         } else {
-            if (!queueB.isEmpty() || trafficLightController.getEastState() == TrafficLight.State.RED) {
+            if (!queueB.isEmpty() || east.getState() == TrafficLight.State.RED) {
                 a.car.setWaitingAtLight(true);
             }
             queueB.addLast(a.car);
@@ -56,10 +60,10 @@ public class TrafficLightIntersection extends  Intersection {
         System.out.printf("%s STARTING TO PASS INTERSECTION at %.0f \n", name, (double) ClockTime());
 
         // Check which directions are green
-        boolean nsGreen = trafficLightController.getNorthState() == TrafficLight.State.GREEN
-                || trafficLightController.getSouthState() == TrafficLight.State.GREEN;
-        boolean ewGreen = trafficLightController.getEastState() == TrafficLight.State.GREEN
-                || trafficLightController.getWestState() == TrafficLight.State.GREEN;
+        boolean nsGreen = north.getState() == TrafficLight.State.GREEN
+                || south.getState() == TrafficLight.State.GREEN;
+        boolean ewGreen = east.getState() == TrafficLight.State.GREEN
+                || west.getState() == TrafficLight.State.GREEN;
 
         LinkedList<Car> activeQueue = null;
 
@@ -88,4 +92,6 @@ public class TrafficLightIntersection extends  Intersection {
         long crossingTime = timeToPass;
         eventList.add(new Event(crossingTime, Event.EventType.DEPARTURE, new Departure(car, nsGreen, this), "Departure after service"));
     }
+
+
 }
