@@ -7,7 +7,6 @@ import org.example.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -18,7 +17,7 @@ public class IntersectionEngine extends Engine{
     private TrafficLightIntersection intersection1;
 
     // List of all intersections
-    private List<TrafficLightIntersection> intersectionList = new ArrayList<>();
+    private List<Intersection> intersectionList = new ArrayList<>();
 
     // Event list
     private EventList el;
@@ -29,14 +28,13 @@ public class IntersectionEngine extends Engine{
     // Time program was paused
     private long pausedStart;
 
-    public void addToIntersectionList(TrafficLightIntersection intersection) {
-        intersectionList.add(intersection);
-    }
     // Total duration of pauses
     private long totalPausedDuration = 0;
 
     // Traffic light controller shared by intersections
     private TrafficLightController trafficLightController;
+
+    List<String> intersectionTypeList = new ArrayList<>();
 
     public IntersectionEngine(TrafficLightController trafficLightController) {
         this.trafficLightController = trafficLightController;
@@ -75,7 +73,7 @@ public class IntersectionEngine extends Engine{
         passThroughTimes.add(time);
     }
 
-    private double simulationSpeed = 1; // How many seconds to sleep between events
+    private static double simulationSpeed = 1; // How many seconds to sleep between events
 
     private static int timeToCrossIntersection = 10; // time to cross intersection once started
 
@@ -108,16 +106,16 @@ public class IntersectionEngine extends Engine{
         }
 
         // schedule initial traffic light change
-        for (TrafficLightIntersection intersection : intersectionList) {
-            if (intersection != null) {
-                el.add(new Event(200, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection), "Initial Traffic Light Change Event for: " + intersection.getName()));
+        for (Intersection intersection : intersectionList) {
+            if (intersection instanceof TrafficLightIntersection) {
+                el.add(new Event(600, Event.EventType.LIGHT_CHANGE, new TrafficLightChange(intersection), "Initial Traffic Light Change Event for: " + intersection.getName()));
             }
         }
 
         //set initial traffic light states
         trafficLightController.setNSGreen();
 
-        setSimulationTime(100000);
+        setSimulationTime(1200);
     }
 
     @Override
@@ -133,21 +131,15 @@ public class IntersectionEngine extends Engine{
                 d.getIntersection().completeService(d, now, el);
             }
             case LIGHT_CHANGE -> {
-                System.out.println(">>> LIGHT_CHANGE EVENT FIRED at time " + e.getTime());
                 TrafficLightChange tlc = (TrafficLightChange) e.getPayload();
-                tlc.run(e.time, eventList);
+                tlc.getIntersection().ChangeTrafficLights(now, el);
             }
 
             case QUEUE_ARRIVALS -> {
                 QueueArrivals qa = (QueueArrivals) e.getPayload();
                 qa.getIntersection().queueArrivals(qa, now, el);
             }
-            case CHECK_LIGHT -> {
-                // This calls startPassingIntersection again,
-                // which will only move cars if their light is green
-                TrafficLightIntersection i = (TrafficLightIntersection) e.getPayload();
-                i.startPassingIntersection(now, eventList);
-            }
+
         }
     }
 
@@ -221,58 +213,54 @@ public class IntersectionEngine extends Engine{
         return intersection1;
     }
 
-    public List<TrafficLightIntersection> getIntersectionList(){
+    public List<Intersection> getIntersectionList(){
         return intersectionList;
     }
-/*
+
     public void setIntersections(List<String> intersectionTypeList) {
+        List<Intersection> tempIntersectionList = new ArrayList<>();
 
-        if (intersectionTypeList == null || intersectionTypeList.isEmpty()) {
-            System.err.println("ERROR: intersectionTypeList is null or empty");
-            return;
-        }
-
-        // Remove null or "Don't show intersection"
-        List<String> cleanedList = intersectionTypeList.stream()
-                .filter(Objects::nonNull)
-                .filter(s -> !s.equals("Don't show intersection"))
-                .toList();
-
-        if (cleanedList.isEmpty()) {
-            System.err.println("No valid intersections to create.");
-            return;
-        }
-
-        List<TrafficLightIntersection> tempIntersectionList = new ArrayList<>();
-
-        // Start from last valid intersection
-        String lastType = cleanedList.get(cleanedList.size() - 1);
-
-        switch (lastType) {
+        // Start from the last intersection type to build the chain backwards
+        switch (intersectionTypeList.get(intersectionTypeList.size()-1)) {
             case "Bare Intersection" -> {
-                BareIntersection bare = new BareIntersection(
-                        "Intersection-" + (cleanedList.size() - 1),
-                        null,
-                        trafficLightController
-                );
-                tempIntersectionList.add(bare);
+                BareIntersection bareIntersection = new BareIntersection("Intersection-" + (intersectionTypeList.size()-1), null, trafficLightController);
+                tempIntersectionList.add(bareIntersection);
             }
             case "Traffic Light Intersection" -> {
-                TrafficLightIntersection tli = new TrafficLightIntersection(
-                        "Intersection-" + (cleanedList.size() - 1),
-                        null,
-                        trafficLightController
-                );
-                tempIntersectionList.add(tli);
+                TrafficLightIntersection trafficLightIntersection = new TrafficLightIntersection("Intersection-" + (intersectionTypeList.size()-1), null,  trafficLightController);
+                tempIntersectionList.add(trafficLightIntersection);
             }
             default -> {
-                System.err.println("Unknown intersection type: " + lastType);
+                // Skip adding an intersection for "Don't show intersection"
             }
         }
 
-        this.intersectionList = tempIntersectionList;
+        // Remove the last element as it's already processed
+        intersectionTypeList.remove(intersectionTypeList.size()-1);
+
+
+        // Now build the rest of the chain
+        for (int i = intersectionTypeList.size() -1; i >= 0; i--) {
+            String type = intersectionTypeList.get(i);
+            switch (type) {
+                case "Bare Intersection" -> {
+                    BareIntersection bareIntersection = new BareIntersection("Intersection-" + (i+1), tempIntersectionList.get(intersectionTypeList.size()-(i+1)), trafficLightController);
+                    tempIntersectionList.add(bareIntersection);
+                }
+                case "Traffic Light Intersection" -> {
+                    TrafficLightIntersection trafficLightIntersection = new TrafficLightIntersection("Intersection-" + (i+1), tempIntersectionList.get(intersectionTypeList.size()-(i+1)), trafficLightController);
+                    tempIntersectionList.add(trafficLightIntersection);
+                }
+                default -> {
+                    // Skip adding an intersection for "Don't show intersection"
+                }
+            }
+        }
+        // Reverse the list to maintain the original order
+        for (int i = tempIntersectionList.size() -1; i >= 0; i--) {
+            intersectionList.add(tempIntersectionList.get(i));
+        }
     }
-*/
 
 
     public static void main(String[] args) {
@@ -343,8 +331,17 @@ public class IntersectionEngine extends Engine{
     public static void setCarArrivalIntervalDist(int avgArrivalInterval) {
     	carArrivalIntervalDist = new Normal((double) avgArrivalInterval, (double) avgArrivalInterval);
     }
-    public EventList getEventList(){
-        return el;
+
+    public static void setSimulationSpeed(double simulationSpeed) {
+        if (simulationSpeed <= 0) {
+            throw new IllegalArgumentException("simulationSpeed must be > 0");
+        }
+        IntersectionEngine.simulationSpeed = simulationSpeed;
     }
+
+    public synchronized double getSimulationSpeed() {
+        return simulationSpeed;
+    }
+
 
 }
