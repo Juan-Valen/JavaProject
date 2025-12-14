@@ -42,7 +42,7 @@ public class SimulationController {
         });
         simulationThread.start();
         // checks the status of the lights every 50ms
-        Timeline lightRefresh = new Timeline(new KeyFrame(Duration.millis(50), e -> {
+        Timeline lightRefresh = new Timeline(new KeyFrame(Duration.millis(70), e -> {
             view.refreshTrafficLights();
         }));
         lightRefresh.setCycleCount(Animation.INDEFINITE);
@@ -58,7 +58,7 @@ public class SimulationController {
                     Arrival arrival = (Arrival) event.getPayload();
                     Intersection intersection = arrival.getIntersection();
                     Circle carNode = new Circle(7, arrival.fromA ? Color.BLUE : Color.BLACK);
-                    TranslateTransition move = new TranslateTransition(Duration.millis(300), carNode);
+                    TranslateTransition move = new TranslateTransition(Duration.millis(800), carNode);
                     view.addCarNode(carNode); // Add to UI
                     carNodes.put(arrival.car, carNode); // Add to list for departure
 
@@ -110,7 +110,7 @@ public class SimulationController {
                     System.out.println("Did not find carNode in Simulation Controller:: 143");
                     return;
                 }
-                TranslateTransition move = new TranslateTransition(Duration.millis(300), carNode);
+                TranslateTransition move = new TranslateTransition(Duration.millis(800), carNode);
 
                 int intersectionIdx = engine.getIntersectionList().indexOf(intersection);
                 if (intersectionIdx < 0) intersectionIdx = 0; // fallback guard

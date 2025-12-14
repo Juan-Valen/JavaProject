@@ -78,7 +78,7 @@ public class IntersectionEngine extends Engine{
         passThroughTimes.add(time);
     }
 
-    private static double simulationSpeed = 1; // How many seconds to sleep between events
+    private static double simulationSpeed = 2.5; // How many seconds to sleep between events
 
     private static int timeToCrossIntersection = 10; // time to cross intersection once started
 
