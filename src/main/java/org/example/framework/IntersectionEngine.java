@@ -403,7 +403,6 @@ public class IntersectionEngine extends Engine{
      */
     public static void addSimulationTime(double addedTime) {
         Engine.setSimulationTime(getSimulationTime()+addedTime);
-        System.out.println("Remaining simulation time: "+ getRemainingSimulationTime());
     }
 
     public static int getAvgArrivalInterval() {
