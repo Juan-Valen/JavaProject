@@ -1,5 +1,5 @@
 simulationDuration,2000
-betweenIntersectionTime,120
+betweenIntersectionTime,58
 carReactionTime,7
-carGroupAvgSize,3
+carGroupAvgSize,8
 avgCarArrivalInterval,120

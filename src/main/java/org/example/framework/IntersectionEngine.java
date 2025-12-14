@@ -225,38 +225,26 @@ public class IntersectionEngine extends Engine{
         return intersectionList;
     }
 
+    // Set intersections based on provided types in start view
     public void setIntersections(List<String> intersectionTypeList) {
-        List<Intersection> tempIntersectionList = new ArrayList<>();
 
-        // Start from the last intersection type to build the chain backwards
-        switch (intersectionTypeList.get(intersectionTypeList.size()-1)) {
-            case "Bare Intersection" -> {
-                BareIntersection bareIntersection = new BareIntersection("Intersection-" + (intersectionTypeList.size()-1), null, trafficLightController);
-                tempIntersectionList.add(bareIntersection);
-            }
-            case "Traffic Light Intersection" -> {
-                TrafficLightIntersection trafficLightIntersection = new TrafficLightIntersection("Intersection-" + (intersectionTypeList.size()-1), null,  trafficLightController);
-                tempIntersectionList.add(trafficLightIntersection);
-            }
-            default -> {
-                // Skip adding an intersection for "Don't show intersection"
-            }
+        if (intersectionTypeList == null || intersectionTypeList.isEmpty()) {
+            throw new IllegalArgumentException("intersectionTypeList cannot be null or empty");
         }
 
-        // Remove the last element as it's already processed
-        intersectionTypeList.remove(intersectionTypeList.size()-1);
+        List<Intersection> tempIntersectionList = new ArrayList<>();
 
-
-        // Now build the rest of the chain
+        // Build intersections in reverse order to set 'next' pointers correctly
         for (int i = intersectionTypeList.size() -1; i >= 0; i--) {
             String type = intersectionTypeList.get(i);
+            Intersection next = tempIntersectionList.isEmpty() ? null : tempIntersectionList.get(tempIntersectionList.size() -1);
             switch (type) {
                 case "Bare Intersection" -> {
-                    BareIntersection bareIntersection = new BareIntersection("Intersection-" + (i+1), tempIntersectionList.get(intersectionTypeList.size()-(i+1)), trafficLightController);
+                    BareIntersection bareIntersection = new BareIntersection("Intersection-" + (i+1), next, trafficLightController);
                     tempIntersectionList.add(bareIntersection);
                 }
                 case "Traffic Light Intersection" -> {
-                    TrafficLightIntersection trafficLightIntersection = new TrafficLightIntersection("Intersection-" + (i+1), tempIntersectionList.get(intersectionTypeList.size()-(i+1)), trafficLightController);
+                    TrafficLightIntersection trafficLightIntersection = new TrafficLightIntersection("Intersection-" + (i+1), next, trafficLightController);
                     tempIntersectionList.add(trafficLightIntersection);
                 }
                 default -> {
@@ -264,9 +252,17 @@ public class IntersectionEngine extends Engine{
                 }
             }
         }
-        // Reverse the list to maintain the original order
+        // Clear the original list and populate it in correct order
+        intersectionList.clear();
         for (int i = tempIntersectionList.size() -1; i >= 0; i--) {
             intersectionList.add(tempIntersectionList.get(i));
+        }
+
+        // debug: print linkage to verify next pointers
+        for (int i = 0; i < intersectionList.size(); i++) {
+            Intersection cur = intersectionList.get(i);
+            String nextName = (cur.getNext() != null) ? cur.getNext().getName() : "null";
+            System.out.println("Built chain: " + cur.getName() + " -> " + nextName);
         }
     }
 

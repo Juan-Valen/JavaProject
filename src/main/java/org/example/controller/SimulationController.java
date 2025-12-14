@@ -66,7 +66,9 @@ public class SimulationController {
                     // ARRIVAL FROM A -> tracked cars -> horizontal movement
                     if (arrival.fromA) {
                         double startY = 200;
-                        int intersectionIdx = Integer.parseInt(name.split("-")[1]); // 0-3
+                        // Get intersection index (0-3)
+//                        int intersectionIdx = Integer.parseInt(name.split("-")[1]);
+                        int intersectionIdx = engine.getIntersectionList().indexOf(intersection);
                         double startX = -170 + (intersectionIdx) * ROAD_LENGTH;
                         carNode.setLayoutX(startX);
                         carNode.setLayoutY(startY);
@@ -81,7 +83,9 @@ public class SimulationController {
                     // ARRIVAL not from A -> untracked cars -> vertical movement
                     else {
                         double startY = -170;
-                        int intersectionIdx = Integer.parseInt(name.split("-")[1]);
+                        // Get intersection index (0-3)
+//                        int intersectionIdx = Integer.parseInt(name.split("-")[1]);
+                        int intersectionIdx = engine.getIntersectionList().indexOf(intersection);
                         double startX = 160 + (intersectionIdx) * ROAD_LENGTH;
                         carNode.setLayoutX(startX);
                         carNode.setLayoutY(startY);
