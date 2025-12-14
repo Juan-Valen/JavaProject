@@ -8,14 +8,28 @@ import org.example.framework.IntersectionEngine;
 import java.util.LinkedList;
 import java.util.Objects;
 
+/**
+ * A bare intersection without traffic lights.
+ */
 public class BareIntersection extends Intersection{
     String lastPassedDirection;
 
-
+    /**
+     * Constructs a BareIntersection.
+     * @param name The name of the intersection.
+     * @param next The next intersection in the chain.
+     * @param controller The traffic light controller for this intersection.
+     */
     public BareIntersection(String name, Intersection next, TrafficLightController controller) {
         super(name, next, controller);
     }
 
+    /**
+     * Handles the arrival of a car at the intersection.
+     * Places the car in the appropriate queue based on its direction.
+     * Sets the car's waiting status if necessary.
+     * @param a The arrival event.
+     */
     public void handleArrival(Arrival a) {
 
         if (a.fromA) {
@@ -36,6 +50,13 @@ public class BareIntersection extends Intersection{
         System.out.println("QueueA size: " + queueA.size() + ", QueueB size: " + queueB.size());
     }
 
+    /**
+     * Starts the process of passing cars through the intersection.
+     * Alternates between queues A and B based on the last passed direction.
+     * Schedules departure events for cars passing through the intersection.
+     * @param now The current time.
+     * @param eventList The event list to schedule departure events.
+     */
     @Override
     public void startPassingIntersection(long now, EventList eventList) {
         if ((queueA.isEmpty() && queueB.isEmpty()) || busy) return;

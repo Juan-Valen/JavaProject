@@ -18,6 +18,7 @@ import javafx.util.Duration;
 
 public class AnimationExample extends Application {
 
+
     public static void main(String[] args) {
         launch(args);
     }
