@@ -57,7 +57,6 @@ public class SimulationController {
                 {
                     Arrival arrival = (Arrival) event.getPayload();
                     Intersection intersection = arrival.getIntersection();
-                    String name = intersection.getName();
                     Circle carNode = new Circle(7, arrival.fromA ? Color.BLUE : Color.BLACK);
                     TranslateTransition move = new TranslateTransition(Duration.millis(300), carNode);
                     view.addCarNode(carNode); // Add to UI
@@ -104,7 +103,6 @@ public class SimulationController {
                 Departure departure = (Departure) event.getPayload();
                 Car car = departure.car;
                 Intersection intersection = departure.getIntersection();
-                String name = intersection.getName();
 
                 // fetch existing node
                 Circle carNode = carNodes.get(car);
@@ -114,10 +112,12 @@ public class SimulationController {
                 }
                 TranslateTransition move = new TranslateTransition(Duration.millis(300), carNode);
 
+                int intersectionIdx = engine.getIntersectionList().indexOf(intersection);
+                if (intersectionIdx < 0) intersectionIdx = 0; // fallback guard
+
                 // horizontal
                 if (departure.fromA) {
                     double startY = 200;
-                    int intersectionIdx = Integer.parseInt(name.split("-")[1]); // 0-3 for some reason
                     double startX = 110 + (intersectionIdx) * ROAD_LENGTH;
 
                     carNode.setLayoutX(startX);
@@ -128,8 +128,7 @@ public class SimulationController {
                     // Animate one road segment
                     move.setByX(ROAD_LENGTH);
 
-                    // +1, don't know why, but it works
-                    if (intersectionIdx +1  == view.getAmountOfIntersections()) {
+                    if (intersectionIdx == (int) view.getAmountOfIntersections()-1) {
                         move.setOnFinished(e -> view.removeCarNode(carNode));
                     }
                     move.play();
@@ -138,7 +137,6 @@ public class SimulationController {
                 // vertical
                 else {
                     double startY = 110;
-                    int intersectionIdx = Integer.parseInt(name.split("-")[1]);
                     double startX = 160 + (intersectionIdx) * ROAD_LENGTH;
                     carNode.setLayoutX(startX);
                     carNode.setLayoutY(startY);

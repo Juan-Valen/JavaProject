@@ -85,6 +85,7 @@ public class IntersectionEngine extends Engine{
     private static int avgArrivalInterval = 120; // average arrival interval for car groups
     private static int maxCarGroupSize = 8; // maximum size of car groups arriving, average is half of this
     private static int avgReactionTime = 20; // average time for driver to react and accelerate when light turns green or other car gives way
+    private static int timeBetweenIntersections = 120; // time for car to travel between intersections
 
     private static Normal carGroupSizeDist = new Normal((double) maxCarGroupSize /2, (double) maxCarGroupSize /2); // average size of car groups arriving
     private static Normal driverReactionTimeDist = new Normal(avgReactionTime, avgReactionTime); // average driver reaction time before starting to pass intersection
@@ -334,6 +335,14 @@ public class IntersectionEngine extends Engine{
 
     public static void setCarArrivalIntervalDist(int avgArrivalInterval) {
     	carArrivalIntervalDist = new Normal((double) avgArrivalInterval, (double) avgArrivalInterval);
+    }
+
+    public static int getTimeBetweenIntersections() {
+        return timeBetweenIntersections;
+    }
+
+    public static void setTimeBetweenIntersections (int timeBetweenIntersections) {
+        IntersectionEngine.timeBetweenIntersections = timeBetweenIntersections;
     }
 
     public static void setSimulationSpeed(double simulationSpeed) {

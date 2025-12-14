@@ -21,13 +21,15 @@ public class TimeBetweenIntersection extends HBox {
         slider.setMinorTickCount(5);
 
         valueLabel.setText(formatValue(slider.getValue()));
-        slider.valueProperty().addListener((obs, oldV, newV) ->
-                valueLabel.setText(formatValue(newV.doubleValue()))
-        );
+        slider.valueProperty().addListener((obs, oldV, newV) -> {
+                valueLabel.setText(formatValue(newV.doubleValue()));
+            // update travel time between intersections (not crossing time)
+            IntersectionEngine.setTimeBetweenIntersections((int) Math.round(newV.doubleValue()));                });
 
         getChildren().addAll(new Label("Time between intersections:"), slider, valueLabel);
 
-        //IntersectionEngine.setTimeToCrossIntersection(getTimeBetween);
+        // initialize engine with current slider value
+        IntersectionEngine.setTimeBetweenIntersections((int) Math.round(slider.getValue()));
     }
 
     private String formatValue(double v) {

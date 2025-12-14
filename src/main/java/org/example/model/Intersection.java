@@ -50,7 +50,7 @@ public class Intersection {
         // route to next intersection (instant arrival at same simulated time)
         // B direction cars are absorbed and do not continue to next intersection
         if (next != null && d.fromA) {
-            eventList.add(new Event(now, Event.EventType.ARRIVAL, new Arrival(d.car, d.fromA, next), "Arrival from previous intersection into next intersection")); // assume next intersection treats all as direction A
+            eventList.add(new Event(now + IntersectionEngine.getTimeBetweenIntersections(), Event.EventType.ARRIVAL, new Arrival(d.car, d.fromA, next), "Arrival from previous intersection into next intersection")); // assume next intersection treats all as direction A
         } else if (next == null && d.fromA) {
             IntersectionEngine.getCarsArrived().incrementAndGet();
             IntersectionEngine.addPassThroughTime(d.car.getStartTime());
