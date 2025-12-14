@@ -25,7 +25,7 @@ public class HomeController {
 
     public void addTime(String time) {
         double addedTime = Double.parseDouble(time);
-        IntersectionEngine.setSimulationTime(addedTime);
+        IntersectionEngine.addSimulationTime(addedTime);
     }
 
 
